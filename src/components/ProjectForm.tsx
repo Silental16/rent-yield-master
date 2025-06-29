@@ -332,7 +332,7 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
             items={data.pricingStages.map(stage => ({
               id: `${stage.name}-${stage.date}`,
               name: stage.name,
-              percentage: stage.price || stage.percentage,
+              percentage: stage.price,
               date: stage.date
             }))}
             onItemsChange={(items) => {
@@ -522,7 +522,7 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
             }}
             title="Расходы из прибыли"
             itemNamePlaceholder="Название расхода"
-            addButtontext="Добавить расход"
+            addButtonText="Добавить расход"
           />
         </CardContent>
       </Card>

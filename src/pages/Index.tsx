@@ -1,229 +1,173 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useState, useEffect } from 'react';
 import { ProjectForm } from '@/components/ProjectForm';
 import { Dashboard } from '@/components/Dashboard';
-import { CashFlowTable } from '@/components/CashFlowTable';
 import { ScenarioAnalysis } from '@/components/ScenarioAnalysis';
-import { ProjectManager } from '@/components/ProjectManager';
-import { useProjectStorage } from '@/hooks/useProjectStorage';
-import { Calculator, TrendingUp, BarChart3, PieChart, CreditCard } from 'lucide-react';
 import { PaymentPlansManager } from '@/components/PaymentPlansManager';
+import { ProjectManager } from '@/components/ProjectManager';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useProjectStorage } from '@/hooks/useProjectStorage';
+import { PaymentPlan } from '@/types/paymentPlan';
 
 export interface ProjectData {
-  // Временные параметры
-  entryDate: string;
-  constructionEndDate: string;
-  
-  // Характеристики юнита
+  name: string;
   area: number;
   cost: number;
   adr: number;
   occupancy: number;
-  
-  // Операционные расходы
-  monthlyExpenses: { enabled: boolean; value: number };
-  annualRepair: { enabled: boolean; value: number };
-  insurance: { enabled: boolean; value: number };
-  
-  // Каналы продаж
-  directBookings: number;
-  otaBookings: number;
-  
-  // Параметры роста
   agr: number;
   propertyGrowth: number;
-  
-  // Лизхолд
   leaseholdTerm: number;
-  
-  // Этапы ценообразования
+  variableCosts: number;
+  agentCommission: number;
+  entryDate: string;
+  constructionEndDate: string;
+  directBookings: number;
+  otaBookings: number;
   pricingStages: Array<{
     name: string;
+    price: number;
     percentage: number;
     date: string;
   }>;
-  
-  // Сценарии выхода
-  variableCosts: number;
-  agentCommission: number;
-  
-  // Сезонность
+  revenueExpenses: Array<{
+    name: string;
+    percentage: number;
+  }>;
+  profitExpenses: Array<{
+    name: string;
+    percentage: number;
+  }>;
+  monthlyExpenses: {
+    enabled: boolean;
+    value: number;
+  };
+  annualRepair: {
+    enabled: boolean;
+    value: number;
+  };
+  insurance: {
+    enabled: boolean;
+    value: number;
+  };
   seasonality: {
     enabled: boolean;
     coefficients: number[];
   };
-  
-  // Финансовые метрики
   npvEnabled: boolean;
   discountRate: number;
   irrEnabled: boolean;
-  
-  // Расходы
-  revenueExpenses: Array<{ name: string; percentage: number }>;
-  profitExpenses: Array<{ name: string; percentage: number }>;
-  
-  // План оплаты
-  paymentPlan: {
-
-    type: 'full' | 'prelaunch' | 'monthly';
-    months?: number;
-    discountType: 'percentage' | 'fixed';
-    discountValue: number;
-    isInstallment: boolean;
-    downPayment: { type: 'percentage' | 'fixed'; value: number };
-    constructionPayments: {
-      percentage: number;
-    };
-  };
 }
 
 const Index = () => {
-  const initialProjectData: ProjectData = {
+  const { projects, currentProject, setCurrentProject, saveProject, deleteProject } = useProjectStorage();
+  const [selectedPaymentPlan, setSelectedPaymentPlan] = useState<PaymentPlan | undefined>();
+
+  const defaultProjectData: ProjectData = {
+    name: 'Новый проект',
+    area: 25,
+    cost: 100000,
+    adr: 150,
+    occupancy: 70,
+    agr: 5,
+    propertyGrowth: 8,
+    leaseholdTerm: 30,
+    variableCosts: 5,
+    agentCommission: 3,
     entryDate: new Date().toISOString().split('T')[0],
     constructionEndDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    area: 50,
-    cost: 100000,
-    adr: 200,
-    occupancy: 70,
-    monthlyExpenses: { enabled: true, value: 500 },
-    annualRepair: { enabled: true, value: 2000 },
-    insurance: { enabled: true, value: 1200 },
     directBookings: 30,
     otaBookings: 70,
-    agr: 5,
-    propertyGrowth: 6,
-    leaseholdTerm: 25,
     pricingStages: [
-      { name: 'Pre-sale', percentage: 100, date: '2024-01-01' },
-      { name: 'Sale', percentage: 120, date: '2024-06-01' },
-      { name: 'Release', percentage: 150, date: '2024-09-01' }
+      {
+        name: 'Базовая цена',
+        price: 100000,
+        percentage: 100000,
+        date: new Date().toISOString().split('T')[0]
+      }
     ],
-    variableCosts: 3,
-    agentCommission: 5,
+    revenueExpenses: [
+      { name: 'Комиссия УК с выручки', percentage: 12 },
+      { name: 'Комиссия OTA', percentage: 15 },
+      { name: 'Уборка', percentage: 8 },
+      { name: 'Белье', percentage: 3 }
+    ],
+    profitExpenses: [
+      { name: 'Налог с прибыли', percentage: 20 },
+      { name: 'Комиссия УК с прибыли', percentage: 10 }
+    ],
+    monthlyExpenses: {
+      enabled: true,
+      value: 200
+    },
+    annualRepair: {
+      enabled: true,
+      value: 2000
+    },
+    insurance: {
+      enabled: true,
+      value: 1500
+    },
     seasonality: {
       enabled: false,
       coefficients: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     },
-    npvEnabled: true,
-    discountRate: 8,
-    irrEnabled: true,
-    revenueExpenses: [
-      { name: 'Комиссия OTA', percentage: 12 },
-      { name: 'Комиссия УК с выручки', percentage: 8 },
-      { name: 'Расходы на содержание', percentage: 5 },
-      { name: 'Налог на аренду', percentage: 10 }
-    ],
-    profitExpenses: [
-      { name: 'Маркетинг', percentage: 3 },
-      { name: 'Комиссия УК с прибыли', percentage: 15 },
-      { name: 'Налог на прибыль', percentage: 13 }
-    ],
-    paymentPlan: {
+    npvEnabled: false,
+    discountRate: 10,
+    irrEnabled: false
+  };
 
-      type: 'prelaunch',
-      months: 12,
+  const [projectData, setProjectData] = useState<ProjectData>(defaultProjectData);
 
-      discountType: 'percentage',
-      discountValue: 5,
-      isInstallment: true,
-      downPayment: { type: 'percentage', value: 30 },
-      constructionPayments: {
-        percentage: 50
-      }
+  useEffect(() => {
+    if (currentProject) {
+      setProjectData(currentProject.data);
+    } else {
+      setProjectData(defaultProjectData);
+    }
+  }, [currentProject]);
+
+  const handleDataChange = (newData: ProjectData) => {
+    setProjectData(newData);
+    if (currentProject) {
+      saveProject({ ...currentProject, data: newData });
     }
   };
 
-  const {
-    currentProject,
-    savedProjects,
-    activeProjectId,
-    saveCurrentProject,
-    loadProject,
-    deleteProject,
-    updateCurrentProject
-  } = useProjectStorage(initialProjectData);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            Финансовые модели v2
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Система моделирования и анализа инвестиций в недвижимость с арендным доходом
-          </p>
-        </div>
-
-        <ProjectManager
-          savedProjects={savedProjects}
-          activeProjectId={activeProjectId}
-          onSaveProject={saveCurrentProject}
-          onLoadProject={loadProject}
-          onDeleteProject={deleteProject}
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto p-4">
+        <ProjectManager 
+          projects={projects}
+          currentProject={currentProject}
+          onProjectSelect={setCurrentProject}
+          onProjectSave={saveProject}
+          onProjectDelete={deleteProject}
+          projectData={projectData}
+          onProjectDataChange={handleDataChange}
         />
-
-        <Tabs defaultValue="parameters" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-white/50 backdrop-blur-sm">
-            <TabsTrigger value="parameters" className="flex items-center gap-2">
-              <Calculator className="w-4 h-4" />
-              Параметры
-            </TabsTrigger>
-            <TabsTrigger value="payment-plans" className="flex items-center gap-2">
-              <CreditCard className="w-4 h-4" />
-              Планы оплаты
-            </TabsTrigger>
-            <TabsTrigger value="dashboard" className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4" />
-              Дашборд
-            </TabsTrigger>
-            <TabsTrigger value="cashflow" className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4" />
-              Cash Flow
-            </TabsTrigger>
-            <TabsTrigger value="scenarios" className="flex items-center gap-2">
-              <PieChart className="w-4 h-4" />
-              Сценарии
-            </TabsTrigger>
+        
+        <Tabs defaultValue="parameters" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="parameters">Параметры</TabsTrigger>
+            <TabsTrigger value="dashboard">Дашборд</TabsTrigger>
+            <TabsTrigger value="scenarios">Сценарии</TabsTrigger>
+            <TabsTrigger value="payment-plans">Планы платежей</TabsTrigger>
           </TabsList>
-
+          
           <TabsContent value="parameters">
-            <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-xl">
-              <CardHeader>
-                <CardTitle className="text-2xl font-semibold text-gray-800">
-                  Параметры проекта
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ProjectForm data={currentProject} onChange={updateCurrentProject} />
-              </CardContent>
-            </Card>
+            <ProjectForm data={projectData} onChange={handleDataChange} />
           </TabsContent>
-
-          <TabsContent value="payment-plans">
-            <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-xl">
-              <CardHeader>
-                <CardTitle className="text-2xl font-semibold text-gray-800">
-                  Управление планами оплаты
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <PaymentPlansManager />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
+          
           <TabsContent value="dashboard">
-            <Dashboard data={currentProject} />
+            <Dashboard data={projectData} paymentPlan={selectedPaymentPlan} />
           </TabsContent>
-
-          <TabsContent value="cashflow">
-            <CashFlowTable data={currentProject} />
-          </TabsContent>
-
+          
           <TabsContent value="scenarios">
-            <ScenarioAnalysis data={currentProject} />
+            <ScenarioAnalysis data={projectData} paymentPlan={selectedPaymentPlan} />
+          </TabsContent>
+          
+          <TabsContent value="payment-plans">
+            <PaymentPlansManager onPaymentPlanSelect={setSelectedPaymentPlan} />
           </TabsContent>
         </Tabs>
       </div>
