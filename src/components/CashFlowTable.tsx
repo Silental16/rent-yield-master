@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProjectData } from '@/pages/Index';
 import { FinancialCalculations } from '@/utils/calculations';
@@ -48,19 +47,19 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
         <CardTitle className="text-xl font-semibold">Детализированный Cash Flow Analysis</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto relative">
+        <div className="overflow-auto relative max-h-[600px]">
           <table className="w-full border-collapse text-sm">
-            <thead className="sticky top-0 bg-white z-10">
+            <thead className="sticky top-0 bg-white z-20 shadow-sm">
               <tr className="border-b-2 border-gray-200">
-                <th className="text-left p-3 font-semibold bg-gray-50 sticky left-0 z-20 border-r-2 border-gray-200">Показатель</th>
+                <th className="text-left p-3 font-semibold bg-gray-50 sticky left-0 z-30 border-r-2 border-gray-200">Показатель</th>
                 {yearlyData.map((year) => (
                   <th key={year.year} className="text-center p-3 font-semibold bg-gray-50" colSpan={12}>
                     Год {year.year}
                   </th>
                 ))}
               </tr>
-              <tr className="border-b border-gray-100">
-                <th className="text-left p-2 bg-gray-25 sticky left-0 z-20 border-r-2 border-gray-200"></th>
+              <tr className="border-b border-gray-100 sticky top-[49px] bg-white z-20">
+                <th className="text-left p-2 bg-gray-25 sticky left-0 z-30 border-r-2 border-gray-200"></th>
                 {yearlyData.map((year) => 
                   year.months.map((month, monthIndex) => (
                     <th key={`${year.year}-${monthIndex}`} className="text-center p-2 text-xs bg-gray-25">

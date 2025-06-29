@@ -1,15 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
-import { PlusCircle } from 'lucide-react';
-import { DragDropContext, Droppable, type DropResult } from 'react-beautiful-dnd';
-import { DraggableListItem } from './DraggableListItem';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { CalendarIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { DragDropListEditor } from './DragDropListEditor';
 import { ProjectData } from '@/pages/Index';
 
 interface ProjectFormProps {
@@ -18,768 +18,497 @@ interface ProjectFormProps {
 }
 
 export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
-  const updateData = (updates: Partial<ProjectData>) => {
-    onChange({ ...data, ...updates });
+  const [entryDate, setEntryDate] = useState<Date | undefined>(data.entryDate ? new Date(data.entryDate) : undefined);
+  const [constructionEndDate, setConstructionEndDate] = useState<Date | undefined>(data.constructionEndDate ? new Date(data.constructionEndDate) : undefined);
+
+  const handleEntryDateChange = (date: Date | undefined) => {
+    setEntryDate(date);
+    if (date) {
+      onChange({ ...data, entryDate: date.toISOString().split('T')[0] });
+    }
   };
 
-  const addPricingStage = () => {
-    const newStage = {
-      name: `Этап ${data.pricingStages.length + 1}`,
-      percentage: 100,
-      date: new Date().toISOString().split('T')[0]
-    };
-    updateData({
-      pricingStages: [...data.pricingStages, newStage]
-    });
+  const handleConstructionEndDateChange = (date: Date | undefined) => {
+    setConstructionEndDate(date);
+    if (date) {
+      onChange({ ...data, constructionEndDate: date.toISOString().split('T')[0] });
+    }
   };
-
-  const removePricingStage = (index: number) => {
-    updateData({
-      pricingStages: data.pricingStages.filter((_, i) => i !== index)
-    });
-  };
-
-  const updatePricingStage = (
-    index: number,
-    field: string,
-    value: string | number,
-  ) => {
-    const updated = data.pricingStages.map((stage, i) => 
-      i === index ? { ...stage, [field]: value } : stage
-    );
-    updateData({ pricingStages: updated });
-  };
-
-  const onDragEndPricingStages = (result: DropResult) => {
-    if (!result.destination) return;
-
-    const items = Array.from(data.pricingStages);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
-    updateData({ pricingStages: items });
-  };
-
-  const addRevenueExpense = () => {
-    updateData({
-      revenueExpenses: [...data.revenueExpenses, { name: 'Новый расход', percentage: 0 }]
-    });
-  };
-
-  const removeRevenueExpense = (index: number) => {
-    updateData({
-      revenueExpenses: data.revenueExpenses.filter((_, i) => i !== index)
-    });
-  };
-
-  const onDragEndRevenueExpenses = (result: DropResult) => {
-    if (!result.destination) return;
-
-    const items = Array.from(data.revenueExpenses);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
-    updateData({ revenueExpenses: items });
-  };
-
-  const addProfitExpense = () => {
-    updateData({
-      profitExpenses: [...data.profitExpenses, { name: 'Новый расход', percentage: 0 }]
-    });
-  };
-
-  const removeProfitExpense = (index: number) => {
-    updateData({
-      profitExpenses: data.profitExpenses.filter((_, i) => i !== index)
-    });
-  };
-
-  const onDragEndProfitExpenses = (result: DropResult) => {
-    if (!result.destination) return;
-
-    const items = Array.from(data.profitExpenses);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
-    updateData({ profitExpenses: items });
-  };
-
-  const handleDownPaymentChange = (value: number) => {
-    const total = value + data.paymentPlan.constructionPayments.percentage;
-    if (total > 100) return;
-
-    updateData({
-      paymentPlan: {
-        ...data.paymentPlan,
-        downPayment: { ...data.paymentPlan.downPayment, value }
-      }
-    });
-  };
-
-  const handleConstructionPaymentChange = (value: number) => {
-    const total = data.paymentPlan.downPayment.value + value;
-    if (total > 100) return;
-
-    updateData({
-      paymentPlan: {
-        ...data.paymentPlan,
-        constructionPayments: {
-          ...data.paymentPlan.constructionPayments,
-          percentage: value
-        }
-      }
-    });
-  };
-
-  const remainingPercentage =
-    100 - data.paymentPlan.downPayment.value - data.paymentPlan.constructionPayments.percentage;
 
   return (
-    <Tabs defaultValue="basic" className="space-y-6">
-      <TabsList className="grid w-full grid-cols-4">
-        <TabsTrigger value="basic">Основные</TabsTrigger>
-        <TabsTrigger value="growth">Рост и этапы</TabsTrigger>
-        <TabsTrigger value="expenses">Расходы</TabsTrigger>
-        <TabsTrigger value="payment">Оплата</TabsTrigger>
-      </TabsList>
-
-      <TabsContent value="basic" className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Временные параметры</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
+    <div className="space-y-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>Временные параметры</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="entry-date">Дата входа в проект</Label>
-              <Input
-                id="entry-date"
-                type="date"
-                value={data.entryDate}
-                onChange={(e) => updateData({ entryDate: e.target.value })}
-              />
+              <Label htmlFor="entryDate">Дата входа в проект</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !entryDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {entryDate ? format(entryDate, "PPP") : <span>Выберите дату</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={entryDate}
+                    onSelect={handleEntryDateChange}
+                    disabled={(date) =>
+                      date > new Date()
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
             <div>
-              <Label htmlFor="construction-end">Дата завершения строительства</Label>
-              <Input
-                id="construction-end"
-                type="date"
-                value={data.constructionEndDate}
-                onChange={(e) => updateData({ constructionEndDate: e.target.value })}
-              />
+              <Label htmlFor="constructionEndDate">Дата завершения строительства</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !constructionEndDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {constructionEndDate ? format(constructionEndDate, "PPP") : <span>Выберите дату</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={constructionEndDate}
+                    onSelect={handleConstructionEndDateChange}
+                    disabled={(date) =>
+                      date < new Date()
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Характеристики юнита</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Характеристики юнита</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="area">Площадь (м²)</Label>
+              <Label htmlFor="area">Площадь (м2)</Label>
               <Input
-                id="area"
                 type="number"
+                id="area"
                 value={data.area}
-                onChange={(e) => updateData({ area: Number(e.target.value) })}
+                onChange={(e) => onChange({ ...data, area: parseFloat(e.target.value) })}
               />
             </div>
             <div>
               <Label htmlFor="cost">Стоимость ($)</Label>
               <Input
-                id="cost"
                 type="number"
+                id="cost"
                 value={data.cost}
-                onChange={(e) => updateData({ cost: Number(e.target.value) })}
+                onChange={(e) => onChange({ ...data, cost: parseFloat(e.target.value) })}
               />
             </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="adr">ADR ($)</Label>
+              <Label htmlFor="adr">Средний дневной доход (ADR, $)</Label>
               <Input
-                id="adr"
                 type="number"
+                id="adr"
                 value={data.adr}
-                onChange={(e) => updateData({ adr: Number(e.target.value) })}
+                onChange={(e) => onChange({ ...data, adr: parseFloat(e.target.value) })}
               />
             </div>
             <div>
               <Label htmlFor="occupancy">Заполняемость (%)</Label>
               <Input
+                type="number"
                 id="occupancy"
-                type="number"
                 value={data.occupancy}
-                onChange={(e) => updateData({ occupancy: Number(e.target.value) })}
+                onChange={(e) => onChange({ ...data, occupancy: parseFloat(e.target.value) })}
               />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Операционные расходы</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <Label htmlFor="monthly-expenses">Месячные расходы ($)</Label>
-                <Input
-                  id="monthly-expenses"
-                  type="number"
-                  value={data.monthlyExpenses.value}
-                  onChange={(e) => updateData({
-                    monthlyExpenses: { ...data.monthlyExpenses, value: Number(e.target.value) }
-                  })}
-                  disabled={!data.monthlyExpenses.enabled}
-                />
-              </div>
-              <Switch
-                checked={data.monthlyExpenses.enabled}
-                onCheckedChange={(checked) => updateData({
-                  monthlyExpenses: { ...data.monthlyExpenses, enabled: checked }
-                })}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <Label htmlFor="annual-repair">Годовые затраты на ремонт ($)</Label>
-                <Input
-                  id="annual-repair"
-                  type="number"
-                  value={data.annualRepair.value}
-                  onChange={(e) => updateData({
-                    annualRepair: { ...data.annualRepair, value: Number(e.target.value) }
-                  })}
-                  disabled={!data.annualRepair.enabled}
-                />
-              </div>
-              <Switch
-                checked={data.annualRepair.enabled}
-                onCheckedChange={(checked) => updateData({
-                  annualRepair: { ...data.annualRepair, enabled: checked }
-                })}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <Label htmlFor="insurance">Страховка ($)</Label>
-                <Input
-                  id="insurance"
-                  type="number"
-                  value={data.insurance.value}
-                  onChange={(e) => updateData({
-                    insurance: { ...data.insurance, value: Number(e.target.value) }
-                  })}
-                  disabled={!data.insurance.enabled}
-                />
-              </div>
-              <Switch
-                checked={data.insurance.enabled}
-                onCheckedChange={(checked) => updateData({
-                  insurance: { ...data.insurance, enabled: checked }
-                })}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Каналы продаж</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label>Распределение источников выручки</Label>
-              <div className="mt-4 space-y-4">
-                <Slider
-                  value={[data.directBookings]}
-                  onValueChange={(value) => updateData({ 
-                    directBookings: value[0],
-                    otaBookings: 100 - value[0]
-                  })}
-                  max={100}
-                  step={1}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Прямые брони: {data.directBookings}%</span>
-                  <span>AirBnB/Booking: {data.otaBookings}%</span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </TabsContent>
-
-      <TabsContent value="growth" className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Параметры роста</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="agr">AGR (%)</Label>
+      <Card>
+        <CardHeader>
+          <CardTitle>Операционные расходы</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="monthlyExpenses">Ежемесячные расходы ($)</Label>
+            <div className="flex items-center space-x-2">
               <Input
-                id="agr"
                 type="number"
-                value={data.agr}
-                onChange={(e) => updateData({ agr: Number(e.target.value) })}
+                id="monthlyExpenses"
+                value={data.monthlyExpenses.value}
+                onChange={(e) =>
+                  onChange({
+                    ...data,
+                    monthlyExpenses: { ...data.monthlyExpenses, value: parseFloat(e.target.value) },
+                  })
+                }
+                disabled={!data.monthlyExpenses.enabled}
+                className="flex-1"
               />
-            </div>
-            <div>
-              <Label htmlFor="property-growth">Рост стоимости объекта (%)</Label>
-              <Input
-                id="property-growth"
-                type="number"
-                value={data.propertyGrowth}
-                onChange={(e) => updateData({ propertyGrowth: Number(e.target.value) })}
-              />
-            </div>
-            <div>
-              <Label htmlFor="leasehold">Срок лизхолда (лет)</Label>
-              <Input
-                id="leasehold"
-                type="number"
-                value={data.leaseholdTerm}
-                onChange={(e) => updateData({ leaseholdTerm: Number(e.target.value) })}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Этапы ценообразования
-              <Button onClick={addPricingStage} size="sm" variant="outline">
-                <PlusCircle className="w-4 h-4 mr-2" />
-                Добавить этап
+              <Button
+                variant="outline"
+                onClick={() =>
+                  onChange({
+                    ...data,
+                    monthlyExpenses: { ...data.monthlyExpenses, enabled: !data.monthlyExpenses.enabled },
+                  })
+                }
+              >
+                {data.monthlyExpenses.enabled ? 'Выключить' : 'Включить'}
               </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <DragDropContext onDragEnd={onDragEndPricingStages}>
-              <Droppable droppableId="pricing-stages">
-                {(provided) => (
-                  <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
-                    {data.pricingStages.map((stage, index) => (
-                      <DraggableListItem
-                        key={`stage-${index}`}
-                        id={`stage-${index}`}
-                        index={index}
-                        name={stage.name}
-                        percentage={stage.percentage}
-                        onNameChange={(value) => updatePricingStage(index, 'name', value)}
-                        onPercentageChange={(value) => updatePricingStage(index, 'percentage', value)}
-                        onDelete={() => removePricingStage(index)}
-                        showDate={true}
-                        date={stage.date}
-                        onDateChange={(value) => updatePricingStage(index, 'date', value)}
-                      />
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </DragDropContext>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Сезонность спроса</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label>Учитывать сезонность</Label>
-              <Switch
-                checked={data.seasonality.enabled}
-                onCheckedChange={(checked) => updateData({
-                  seasonality: { ...data.seasonality, enabled: checked }
-                })}
-              />
             </div>
-            {data.seasonality.enabled && (
-              <div className="grid grid-cols-4 gap-4">
-                {data.seasonality.coefficients.map((coef, index) => (
-                  <div key={index}>
-                    <Label>{['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'][index]}</Label>
-                    <Input
-                      type="number"
-                      step="0.1"
-                      min="0.5"
-                      max="2.0"
-                      value={coef}
-                      onChange={(e) => {
-                        const updated = [...data.seasonality.coefficients];
-                        updated[index] = Number(e.target.value);
-                        updateData({
-                          seasonality: { ...data.seasonality, coefficients: updated }
-                        });
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Финансовые метрики</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label>Расчет NPV</Label>
-              <Switch
-                checked={data.npvEnabled}
-                onCheckedChange={(enabled) => updateData({ npvEnabled: enabled })}
-              />
-            </div>
-            {data.npvEnabled && (
-              <div>
-                <Label htmlFor="discount-rate">Ставка дисконтирования (%)</Label>
-                <Input
-                  id="discount-rate"
-                  type="number"
-                  value={data.discountRate}
-                  onChange={(e) => updateData({ discountRate: Number(e.target.value) })}
-                />
-              </div>
-            )}
-            <div className="flex items-center justify-between">
-              <Label>Расчет IRR</Label>
-              <Switch
-                checked={data.irrEnabled}
-                onCheckedChange={(enabled) => updateData({ irrEnabled: enabled })}
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </TabsContent>
-
-      <TabsContent value="expenses" className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Расходы из валовой выручки
-              <Button onClick={addRevenueExpense} size="sm" variant="outline">
-                <PlusCircle className="w-4 h-4 mr-2" />
-                Добавить
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <DragDropContext onDragEnd={onDragEndRevenueExpenses}>
-              <Droppable droppableId="revenue-expenses">
-                {(provided) => (
-                  <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
-                    {data.revenueExpenses.map((expense, index) => (
-                      <DraggableListItem
-                        key={`revenue-${index}`}
-                        id={`revenue-${index}`}
-                        index={index}
-                        name={expense.name}
-                        percentage={expense.percentage}
-                        onNameChange={(value) => {
-                          const updated = [...data.revenueExpenses];
-                          updated[index].name = value;
-                          updateData({ revenueExpenses: updated });
-                        }}
-                        onPercentageChange={(value) => {
-                          const updated = [...data.revenueExpenses];
-                          updated[index].percentage = value;
-                          updateData({ revenueExpenses: updated });
-                        }}
-                        onDelete={() => removeRevenueExpense(index)}
-                      />
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </DragDropContext>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Расходы из операционной прибыли
-              <Button onClick={addProfitExpense} size="sm" variant="outline">
-                <PlusCircle className="w-4 h-4 mr-2" />
-                Добавить
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <DragDropContext onDragEnd={onDragEndProfitExpenses}>
-              <Droppable droppableId="profit-expenses">
-                {(provided) => (
-                  <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
-                    {data.profitExpenses.map((expense, index) => (
-                      <DraggableListItem
-                        key={`profit-${index}`}
-                        id={`profit-${index}`}
-                        index={index}
-                        name={expense.name}
-                        percentage={expense.percentage}
-                        onNameChange={(value) => {
-                          const updated = [...data.profitExpenses];
-                          updated[index].name = value;
-                          updateData({ profitExpenses: updated });
-                        }}
-                        onPercentageChange={(value) => {
-                          const updated = [...data.profitExpenses];
-                          updated[index].percentage = value;
-                          updateData({ profitExpenses: updated });
-                        }}
-                        onDelete={() => removeProfitExpense(index)}
-                      />
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </DragDropContext>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Сценарии выхода</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="variable-costs">Переменные расходы (%)</Label>
+          </div>
+          <div>
+            <Label htmlFor="annualRepair">Ежегодный ремонт ($)</Label>
+            <div className="flex items-center space-x-2">
               <Input
-                id="variable-costs"
                 type="number"
-                value={data.variableCosts}
-                onChange={(e) => updateData({ variableCosts: Number(e.target.value) })}
+                id="annualRepair"
+                value={data.annualRepair.value}
+                onChange={(e) =>
+                  onChange({
+                    ...data,
+                    annualRepair: { ...data.annualRepair, value: parseFloat(e.target.value) },
+                  })
+                }
+                disabled={!data.annualRepair.enabled}
+                className="flex-1"
               />
+              <Button
+                variant="outline"
+                onClick={() =>
+                  onChange({
+                    ...data,
+                    annualRepair: { ...data.annualRepair, enabled: !data.annualRepair.enabled },
+                  })
+                }
+              >
+                {data.annualRepair.enabled ? 'Выключить' : 'Включить'}
+              </Button>
             </div>
-            <div>
-              <Label htmlFor="agent-commission">Комиссия агенту (%)</Label>
+          </div>
+          <div>
+            <Label htmlFor="insurance">Страховка ($)</Label>
+            <div className="flex items-center space-x-2">
               <Input
-                id="agent-commission"
                 type="number"
-                value={data.agentCommission}
-                onChange={(e) => updateData({ agentCommission: Number(e.target.value) })}
+                id="insurance"
+                value={data.insurance.value}
+                onChange={(e) =>
+                  onChange({
+                    ...data,
+                    insurance: { ...data.insurance, value: parseFloat(e.target.value) },
+                  })
+                }
+                disabled={!data.insurance.enabled}
+                className="flex-1"
               />
+              <Button
+                variant="outline"
+                onClick={() =>
+                  onChange({
+                    ...data,
+                    insurance: { ...data.insurance, enabled: !data.insurance.enabled },
+                  })
+                }
+              >
+                {data.insurance.enabled ? 'Выключить' : 'Включить'}
+              </Button>
             </div>
-          </CardContent>
-        </Card>
-      </TabsContent>
+          </div>
+        </CardContent>
+      </Card>
 
-      <TabsContent value="payment" className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>План оплаты</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Каналы продаж</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-6">
+          <div>
+            <Label htmlFor="directBookings">Прямые бронирования (%)</Label>
+            <Input
+              type="number"
+              id="directBookings"
+              value={data.directBookings}
+              onChange={(e) => onChange({ ...data, directBookings: parseFloat(e.target.value) })}
+            />
+          </div>
+          <div>
+            <Label htmlFor="otaBookings">OTA бронирования (%)</Label>
+            <Input
+              type="number"
+              id="otaBookings"
+              value={data.otaBookings}
+              onChange={(e) => onChange({ ...data, otaBookings: parseFloat(e.target.value) })}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Параметры роста</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-6">
+          <div>
+            <Label htmlFor="agr">Рост ADR (AGR, %)</Label>
+            <Input
+              type="number"
+              id="agr"
+              value={data.agr}
+              onChange={(e) => onChange({ ...data, agr: parseFloat(e.target.value) })}
+            />
+          </div>
+          <div>
+            <Label htmlFor="propertyGrowth">Рост стоимости объекта (%)</Label>
+            <Input
+              type="number"
+              id="propertyGrowth"
+              value={data.propertyGrowth}
+              onChange={(e) => onChange({ ...data, propertyGrowth: parseFloat(e.target.value) })}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Лизхолд</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-6">
+          <div>
+            <Label htmlFor="leaseholdTerm">Срок лизхолда (лет)</Label>
+            <Input
+              type="number"
+              id="leaseholdTerm"
+              value={data.leaseholdTerm}
+              onChange={(e) => onChange({ ...data, leaseholdTerm: parseFloat(e.target.value) })}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Этапы ценообразования</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DragDropListEditor
+            items={data.pricingStages.map(stage => ({
+              id: `${stage.name}-${stage.date}`,
+              name: stage.name,
+              percentage: stage.percentage,
+              date: stage.date
+            }))}
+            onItemsChange={(items) => {
+              const newStages = items.map(item => ({
+                name: item.name,
+                percentage: item.percentage,
+                date: item.date || new Date().toISOString().split('T')[0]
+              }));
+              onChange({ ...data, pricingStages: newStages });
+            }}
+            title="Этапы ценообразования"
+            showDate={true}
+            itemNamePlaceholder="Название этапа"
+            addButtonText="Добавить этап"
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Сценарии выхода</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-6">
+          <div>
+            <Label htmlFor="variableCosts">Переменные расходы (%)</Label>
+            <Input
+              type="number"
+              id="variableCosts"
+              value={data.variableCosts}
+              onChange={(e) => onChange({ ...data, variableCosts: parseFloat(e.target.value) })}
+            />
+          </div>
+          <div>
+            <Label htmlFor="agentCommission">Комиссия агента (%)</Label>
+            <Input
+              type="number"
+              id="agentCommission"
+              value={data.agentCommission}
+              onChange={(e) => onChange({ ...data, agentCommission: parseFloat(e.target.value) })}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Сезонность</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-6">
+          <div>
+            <Label>Включить сезонность</Label>
+            <Button
+              variant="outline"
+              onClick={() =>
+                onChange({
+                  ...data,
+                  seasonality: { ...data.seasonality, enabled: !data.seasonality.enabled },
+                })
+              }
+            >
+              {data.seasonality.enabled ? 'Выключить' : 'Включить'}
+            </Button>
+          </div>
+          {data.seasonality.enabled && (
+            <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
+              {data.seasonality.coefficients.map((coefficient, index) => (
+                <div key={index}>
+                  <Label htmlFor={`coefficient-${index}`}>Месяц {index + 1}</Label>
+                  <Input
+                    type="number"
+                    id={`coefficient-${index}`}
+                    value={coefficient}
+                    onChange={(e) => {
+                      const newCoefficients = [...data.seasonality.coefficients];
+                      newCoefficients[index] = parseFloat(e.target.value);
+                      onChange({
+                        ...data,
+                        seasonality: { ...data.seasonality, coefficients: newCoefficients },
+                      });
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Финансовые метрики</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-6">
+          <div>
+            <Label>Включить NPV</Label>
+            <Button
+              variant="outline"
+              onClick={() =>
+                onChange({
+                  ...data,
+                  npvEnabled: !data.npvEnabled,
+                })
+              }
+            >
+              {data.npvEnabled ? 'Выключить' : 'Включить'}
+            </Button>
+          </div>
+          {data.npvEnabled && (
             <div>
-              <Label>Режим оплаты</Label>
-              <div className="flex gap-2 mt-2">
-                <Button
-                  size="sm"
-                  variant={data.paymentPlan.type === 'prelaunch' ? 'default' : 'outline'}
-                  onClick={() => updateData({ paymentPlan: { ...data.paymentPlan, type: 'prelaunch' } })}
-                >
-                  До запуска
-                </Button>
-                <Button
-                  size="sm"
-                  variant={data.paymentPlan.type === 'monthly' ? 'default' : 'outline'}
-                  onClick={() =>
-                    updateData({
-                      paymentPlan: {
-                        ...data.paymentPlan,
-                        type: 'monthly',
-                        months: data.paymentPlan.months ?? 12
-                      }
-                    })
-                  }
-                >
-                  Помесячно
-                </Button>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Тип скидки</Label>
-                <div className="flex gap-2 mt-2">
-                  <Button
-                    variant={data.paymentPlan.discountType === 'percentage' ? 'default' : 'outline'}
-                    onClick={() => updateData({
-                      paymentPlan: { ...data.paymentPlan, discountType: 'percentage' }
-                    })}
-                  >
-                    Процент
-                  </Button>
-                  <Button
-                    variant={data.paymentPlan.discountType === 'fixed' ? 'default' : 'outline'}
-                    onClick={() => updateData({
-                      paymentPlan: { ...data.paymentPlan, discountType: 'fixed' }
-                    })}
-                  >
-                    Сумма
-                  </Button>
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="discount-value">
-                  Скидка ({data.paymentPlan.discountType === 'percentage' ? '%' : '$'})
-                </Label>
-                <Input
-                  id="discount-value"
-                  type="number"
-                  value={data.paymentPlan.discountValue}
-                  onChange={(e) => updateData({
-                    paymentPlan: { ...data.paymentPlan, discountValue: Number(e.target.value) }
-                  })}
-                />
-              </div>
-            </div>
-
-            <Separator />
-
-            <div className="flex items-center justify-between">
-              <Label>Рассрочка</Label>
-              <Switch
-                checked={data.paymentPlan.isInstallment}
-                onCheckedChange={(checked) => updateData({
-                  paymentPlan: { ...data.paymentPlan, isInstallment: checked }
-                })}
+              <Label htmlFor="discountRate">Ставка дисконтирования (%)</Label>
+              <Input
+                type="number"
+                id="discountRate"
+                value={data.discountRate}
+                onChange={(e) => onChange({ ...data, discountRate: parseFloat(e.target.value) })}
               />
             </div>
+          )}
+          <div>
+            <Label>Включить IRR</Label>
+            <Button
+              variant="outline"
+              onClick={() =>
+                onChange({
+                  ...data,
+                  irrEnabled: !data.irrEnabled,
+                })
+              }
+            >
+              {data.irrEnabled ? 'Выключить' : 'Включить'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-            {data.paymentPlan.isInstallment && (
-              <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Тип плана</Label>
-                    <div className="flex gap-2 mt-2">
-                      <Button
-                        size="sm"
-                        variant={data.paymentPlan.type === 'prelaunch' ? 'default' : 'outline'}
-                        onClick={() => updateData({
-                          paymentPlan: { ...data.paymentPlan, type: 'prelaunch' }
-                        })}
-                      >
-                        До запуска
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant={data.paymentPlan.type === 'monthly' ? 'default' : 'outline'}
-                        onClick={() =>
-                          updateData({
-                            paymentPlan: {
-                              ...data.paymentPlan,
-                              type: 'monthly',
-                              months: data.paymentPlan.months ?? 12
-                            }
-                          })
-                        }
-                      >
-                        Помесячно
-                      </Button>
-                    </div>
-                  </div>
-                  {data.paymentPlan.type === 'monthly' && (
-                    <div>
-                      <Label htmlFor="plan-months">Количество месяцев</Label>
-                      <Input
-                        id="plan-months"
-                        type="number"
-                        value={data.paymentPlan.months ?? 12}
-                        onChange={(e) =>
-                          updateData({
-                            paymentPlan: {
-                              ...data.paymentPlan,
-                              months: Number(e.target.value)
-                            }
-                          })
-                        }
-                      />
-                    </div>
-                  )}
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Тип первоначального взноса</Label>
-                    <div className="flex gap-2 mt-2">
-                      <Button
-                        size="sm"
-                        variant={data.paymentPlan.downPayment.type === 'percentage' ? 'default' : 'outline'}
-                        onClick={() => updateData({
-                          paymentPlan: {
-                            ...data.paymentPlan,
-                            downPayment: { ...data.paymentPlan.downPayment, type: 'percentage' }
-                          }
-                        })}
-                      >
-                        %
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant={data.paymentPlan.downPayment.type === 'fixed' ? 'default' : 'outline'}
-                        onClick={() => updateData({
-                          paymentPlan: {
-                            ...data.paymentPlan,
-                            downPayment: { ...data.paymentPlan.downPayment, type: 'fixed' }
-                          }
-                        })}
-                      >
-                        $
-                      </Button>
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="down-payment">
-                      Первоначальный взнос ({data.paymentPlan.downPayment.type === 'percentage' ? '%' : '$'})
-                    </Label>
-                    <Input
-                      id="down-payment"
-                      type="number"
-                      value={data.paymentPlan.downPayment.value}
-                      onChange={(e) => handleDownPaymentChange(Number(e.target.value))}
-                    />
-                  </div>
-                </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Расходы из выручки</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DragDropListEditor
+            items={data.revenueExpenses.map((expense, index) => ({
+              id: `revenue-${index}`,
+              name: expense.name,
+              percentage: expense.percentage
+            }))}
+            onItemsChange={(items) => {
+              const newExpenses = items.map(item => ({
+                name: item.name,
+                percentage: item.percentage
+              }));
+              onChange({ ...data, revenueExpenses: newExpenses });
+            }}
+            title="Расходы из выручки"
+            itemNamePlaceholder="Название расхода"
+            addButtonText="Добавить расход"
+          />
+        </CardContent>
+      </Card>
 
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <Label htmlFor="construction-percentage">Платежи во время строительства (%)</Label>
-                    <Input
-                      id="construction-percentage"
-                      type="number"
-                      value={data.paymentPlan.constructionPayments.percentage}
-                      onChange={(e) => handleConstructionPaymentChange(Number(e.target.value))}
-                    />
-                  </div>
-                </div>
-                
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <Label className="text-sm font-medium text-blue-700">
-                    Платежи после окончания строительства
-                  </Label>
-                  <p className="text-sm text-blue-600 mt-1">
-
-                    {remainingPercentage}% будет списано в день запуска проекта
-
-                  </p>
-                  {remainingPercentage === 0 && (
-                    <p className="text-xs text-red-600 mt-1">Предупреждение: финальный платеж отсутствует</p>
-                  )}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </TabsContent>
-    </Tabs>
+      <Card>
+        <CardHeader>
+          <CardTitle>Расходы из прибыли</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DragDropListEditor
+            items={data.profitExpenses.map((expense, index) => ({
+              id: `profit-${index}`,
+              name: expense.name,
+              percentage: expense.percentage
+            }))}
+            onItemsChange={(items) => {
+              const newExpenses = items.map(item => ({
+                name: item.name,
+                percentage: item.percentage
+              }));
+              onChange({ ...data, profitExpenses: newExpenses });
+            }}
+            title="Расходы из прибыли"
+            itemNamePlaceholder="Название расхода"
+            addButtonText="Добавить расход"
+          />
+        </CardContent>
+      </Card>
+    </div>
   );
 };
