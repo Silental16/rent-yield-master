@@ -231,8 +231,22 @@ export class FinancialCalculations {
   // Расчет плана платежей
   calculatePaymentSchedule() {
     const totalInvestment = this.calculateTotalInvestment();
-    const payments = [];
-    
+    const payments = [] as Array<{ date: string; amount: number; description: string }>;
+
+    const entryDate = new Date(this.data.entryDate);
+    const constructionEndDate = new Date(this.data.constructionEndDate);
+
+    // Если вход в проект происходит после окончания строительства,
+    // вся сумма оплачивается в дату входа
+    if (entryDate > constructionEndDate) {
+      payments.push({
+        date: this.data.entryDate,
+        amount: totalInvestment,
+        description: 'Полная оплата при входе'
+      });
+      return payments;
+    }
+
     if (!this.data.paymentPlan.isInstallment) {
       // Полная оплата
       payments.push({
@@ -242,16 +256,21 @@ export class FinancialCalculations {
       });
     } else {
       // Рассрочка
+
       const entryDate = new Date(this.data.entryDate);
       const constructionEndDate = new Date(this.data.constructionEndDate);
-      
+
+
       // Первоначальный взнос
       let downPaymentAmount;
       if (this.data.paymentPlan.downPayment.type === 'percentage') {
-        downPaymentAmount = totalInvestment * (this.data.paymentPlan.downPayment.value / 100);
+        downPaymentAmount = totalInvestment * (
+          this.data.paymentPlan.downPayment.value / 100
+        );
       } else {
         downPaymentAmount = this.data.paymentPlan.downPayment.value;
       }
+
       
       payments.push({
         date: this.data.entryDate,
@@ -313,9 +332,73 @@ export class FinancialCalculations {
             date: this.data.constructionEndDate,
             amount: finalPayment,
             description: 'Финальный платеж при запуске'
+
           });
+
+          // Spread construction payments evenly until launch minus one month
+          const monthlyAmount = constructionPaymentAmount / allowedMonths;
+          for (let i = 1; i <= allowedMonths; i++) {
+            const paymentDate = new Date(
+              entryDate.getTime() + i * 30 * 24 * 60 * 60 * 1000
+            );
+            payments.push({
+              date: paymentDate.toISOString().split('T')[0],
+              amount: monthlyAmount,
+              description: `Платеж ${i}`
+            });
+          }
+        }
+      } else {
+        payments.push({
+          date: this.data.entryDate,
+          amount: downPaymentAmount,
+          description: 'Первоначальный взнос'
+        });
+
+        if (this.data.paymentPlan.constructionPayments.mode === 'monthly') {
+          const monthlyPayment = constructionPaymentAmount / monthsDuringConstruction;
+
+          for (let i = 1; i < monthsDuringConstruction; i++) {
+            const paymentDate = new Date(
+              entryDate.getTime() + i * 30 * 24 * 60 * 60 * 1000
+            );
+            payments.push({
+              date: paymentDate.toISOString().split('T')[0],
+              amount: monthlyPayment,
+              description: `Платеж ${i}`
+            });
+          }
+        } else {
+          // Фиксированное количество платежей
+          const paymentCount =
+            this.data.paymentPlan.constructionPayments.count || 12;
+          const fixedPayment = constructionPaymentAmount / paymentCount;
+
+          for (let i = 1; i <= paymentCount && i < monthsDuringConstruction; i++) {
+            const paymentDate = new Date(
+              entryDate.getTime() +
+                i * (monthsDuringConstruction / paymentCount) * 30 * 24 * 60 * 60 * 1000
+            );
+            payments.push({
+              date: paymentDate.toISOString().split('T')[0],
+              amount: fixedPayment,
+              description: `Платеж ${i}`
+            });
+          }
         }
       }
+      // Финальный платеж в день запуска проекта
+      const totalPaid = payments.reduce((sum, payment) => sum + payment.amount, 0);
+      const finalPayment = totalInvestment - totalPaid;
+
+      if (finalPayment > 0) {
+        payments.push({
+          date: this.data.constructionEndDate,
+          amount: finalPayment,
+          description: 'Финальный платеж при запуске'
+        });
+      }
+
     }
     
     return payments;
