@@ -95,11 +95,12 @@ export class FinancialCalculations {
       );
       
       const netProfit = operatingProfit - profitExpensesTotal;
-      
+
       results.push({
         year,
         grossIncome,
         revenueExpenses: revenueExpensesTotal,
+        revenueExpensesBreakdown: revenueExpensesData.breakdown,
         operationalExpenses,
         operatingProfit,
         profitExpenses: profitExpensesTotal,
