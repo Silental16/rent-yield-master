@@ -231,21 +231,10 @@ export class FinancialCalculations {
   // Расчет плана платежей
   calculatePaymentSchedule() {
     const totalInvestment = this.calculateTotalInvestment();
-    const payments = [] as Array<{ date: string; amount: number; description: string }>;
 
-    const entryDate = new Date(this.data.entryDate);
-    const constructionEndDate = new Date(this.data.constructionEndDate);
-
-    // Если вход в проект происходит после окончания строительства,
-    // вся сумма оплачивается в дату входа
-    if (entryDate > constructionEndDate) {
-      payments.push({
-        date: this.data.entryDate,
-        amount: totalInvestment,
-        description: 'Полная оплата при входе'
-      });
-      return payments;
-    }
+    const maxPercentage = 100;
+    const payments = [];
+    
 
     if (!this.data.paymentPlan.isInstallment) {
       // Полная оплата
@@ -278,13 +267,25 @@ export class FinancialCalculations {
         description: 'Первоначальный взнос'
       });
       
-      if (this.data.paymentPlan.type === 'monthly') {
-        const months = this.data.paymentPlan.months || 0;
-        const monthlyAmount = (totalInvestment - downPaymentAmount) / months;
 
-        for (let i = 1; i <= months; i++) {
-          const paymentDate = new Date(entryDate);
-          paymentDate.setMonth(paymentDate.getMonth() + i);
+      // Платежи во время строительства
+      let constructionPercentage = this.data.paymentPlan.constructionPayments.percentage;
+      if (this.data.paymentPlan.downPayment.type === 'percentage') {
+        constructionPercentage = Math.min(
+          constructionPercentage,
+          Math.max(0, maxPercentage - this.data.paymentPlan.downPayment.value)
+        );
+      }
+      const constructionPaymentAmount = totalInvestment * (constructionPercentage / 100);
+      
+      const monthsDuringConstruction = Math.max(1, Math.floor((constructionEndDate.getTime() - entryDate.getTime()) / (30 * 24 * 60 * 60 * 1000)));
+      
+      if (this.data.paymentPlan.constructionPayments.mode === 'monthly') {
+        const monthlyPayment = constructionPaymentAmount / monthsDuringConstruction;
+        
+        for (let i = 1; i < monthsDuringConstruction; i++) {
+          const paymentDate = new Date(entryDate.getTime() + i * 30 * 24 * 60 * 60 * 1000);
+
           payments.push({
             date: paymentDate.toISOString().split('T')[0],
             amount: monthlyAmount,
