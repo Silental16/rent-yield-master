@@ -75,7 +75,7 @@ export class FinancialCalculations {
       const revenueExpensesData = this.calculateRevenueExpenses(grossIncome);
       const revenueExpensesTotal = revenueExpensesData.total;
       
-      // Операционные расходы вычитаются из валовой выручки
+      // Операционные расходы (включены в расходы из выручки)
       let operationalExpenses = 0;
       if (this.data.monthlyExpenses.enabled) {
         operationalExpenses += this.data.monthlyExpenses.value * 12;
@@ -87,12 +87,16 @@ export class FinancialCalculations {
         operationalExpenses += this.data.insurance.value;
       }
       
-      const operatingProfit = grossIncome - revenueExpensesTotal - operationalExpenses;
+      // Общие расходы из выручки (включая операционные)
+      const totalRevenueExpenses = revenueExpensesTotal + operationalExpenses;
       
-      // Расчет расходов из прибыли
-      const profitExpensesTotal = this.data.profitExpenses.reduce((sum, expense) => 
-        sum + (operatingProfit * expense.percentage / 100), 0
-      );
+      const operatingProfit = grossIncome - totalRevenueExpenses;
+      
+      // Расходы из прибыли применяются только если есть положительная прибыль
+      const profitExpensesTotal = operatingProfit > 0 ? 
+        this.data.profitExpenses.reduce((sum, expense) => 
+          sum + (operatingProfit * expense.percentage / 100), 0
+        ) : 0;
       
       const netProfit = operatingProfit - profitExpensesTotal;
 
@@ -102,6 +106,7 @@ export class FinancialCalculations {
         revenueExpenses: revenueExpensesTotal,
         revenueExpensesBreakdown: revenueExpensesData.breakdown,
         operationalExpenses,
+        totalRevenueExpenses,
         operatingProfit,
         profitExpenses: profitExpensesTotal,
         netProfit
@@ -192,7 +197,7 @@ export class FinancialCalculations {
     // IRR
     const irr = this.calculateIRR();
     
-    // Срок окупаемости
+    // Срок окупаемости (в годах с десятичными)
     const cashFlow = this.calculateCashFlow();
     let paybackPeriod = 0;
     let cumulativeCF = 0;
@@ -200,7 +205,7 @@ export class FinancialCalculations {
     for (let i = 0; i < cashFlow.length; i++) {
       cumulativeCF += cashFlow[i].netCashFlow;
       if (cumulativeCF >= 0) {
-        paybackPeriod = Math.ceil(i / 12);
+        paybackPeriod = i / 12; // Возвращаем точное значение в годах
         break;
       }
     }
