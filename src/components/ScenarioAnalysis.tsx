@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProjectData } from '@/pages/Index';
 import { FinancialCalculations } from '@/utils/calculations';
@@ -17,7 +18,7 @@ export const ScenarioAnalysis = ({ data }: ScenarioAnalysisProps) => {
       years: 0,
       propertyValue: calculations.getPropertyValueAtYear(0),
       rentalIncome: 0,
-      exitCosts: 0
+      exitCosts: calculations.getExitCosts(0)
     },
     {
       name: 'Через 5 лет',
@@ -42,11 +43,24 @@ export const ScenarioAnalysis = ({ data }: ScenarioAnalysisProps) => {
     totalValue: scenario.propertyValue + scenario.rentalIncome - scenario.exitCosts // Общая ценность
   }));
 
-  const scenarioData = scenarios.map(scenario => ({
-    ...scenario,
-    totalReturn: scenario.propertyValue + scenario.rentalIncome - scenario.exitCosts - data.cost,
-    roi: ((scenario.propertyValue + scenario.rentalIncome - scenario.exitCosts - data.cost) / data.cost) * 100
-  }));
+  const scenarioData = scenarios.map(scenario => {
+    const purchasePrice = data.cost;
+    const salePrice = scenario.propertyValue;
+    const exitCosts = scenario.exitCosts;
+    const saleProfit = salePrice - exitCosts;
+    const rentalIncome = scenario.rentalIncome;
+    const totalReturn = saleProfit + rentalIncome - purchasePrice;
+    const roi = (totalReturn / purchasePrice) * 100;
+    
+    return {
+      ...scenario,
+      purchasePrice,
+      salePrice,
+      saleProfit,
+      totalReturn,
+      roi
+    };
+  });
 
   // Анализ чувствительности
   const sensitivityAnalysis = [
@@ -91,6 +105,52 @@ export const ScenarioAnalysis = ({ data }: ScenarioAnalysisProps) => {
 
   const COLORS = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444'];
 
+  // Кастомный компонент для tooltip
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const scenario = scenarioData.find(s => s.name === label);
+      if (scenario) {
+        return (
+          <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-lg">
+            <p className="font-semibold mb-2">{label}</p>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between gap-4">
+                <span>Цена при покупке:</span>
+                <span className="font-medium">{formatCurrency(scenario.purchasePrice)}</span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span>Цена при продаже:</span>
+                <span className="font-medium">{formatCurrency(scenario.salePrice)}</span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span>Расходы при продаже:</span>
+                <span className="font-medium text-red-600">{formatCurrency(scenario.exitCosts)}</span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span>Доход от продажи:</span>
+                <span className="font-medium text-green-600">{formatCurrency(scenario.saleProfit)}</span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span>Доход от аренды:</span>
+                <span className="font-medium text-green-600">{formatCurrency(scenario.rentalIncome)}</span>
+              </div>
+              <hr className="my-2" />
+              <div className="flex justify-between gap-4 font-semibold">
+                <span>Общий доход:</span>
+                <span className={scenario.totalReturn >= 0 ? 'text-green-600' : 'text-red-600'}>
+                  {formatCurrency(scenario.totalReturn)}
+                </span>
+              </div>
+            </div>
+          </div>
+        );
+      }
+    }
+    return null;
+  };
+
+  const keyMetrics = calculations.calculateKeyMetrics();
+
   return (
     <div className="space-y-6">
       {/* Сценарии выхода */}
@@ -105,12 +165,7 @@ export const ScenarioAnalysis = ({ data }: ScenarioAnalysisProps) => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis tickFormatter={formatCurrency} />
-                <Tooltip 
-                  formatter={(value: number, name: string) => [
-                    formatCurrency(value), 
-                    name === 'investment' ? 'Инвестиции' : 'Доход'
-                  ]}
-                />
+                <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="investment" fill="#9ca3af" name="Инвестиции" />
                 <Bar dataKey="totalValue" fill="#059669" name="Доход" />
               </BarChart>
@@ -123,16 +178,24 @@ export const ScenarioAnalysis = ({ data }: ScenarioAnalysisProps) => {
                 <h4 className="font-semibold text-gray-700 mb-3">{scenario.name}</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span>Стоимость объекта:</span>
-                    <span className="font-medium">{formatCurrency(scenario.propertyValue)}</span>
+                    <span>Цена при покупке:</span>
+                    <span className="font-medium">{formatCurrency(scenario.purchasePrice)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Доход от аренды:</span>
-                    <span className="font-medium text-green-600">{formatCurrency(scenario.rentalIncome)}</span>
+                    <span>Цена при продаже:</span>
+                    <span className="font-medium">{formatCurrency(scenario.salePrice)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Расходы на выход:</span>
                     <span className="font-medium text-red-600">-{formatCurrency(scenario.exitCosts)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Доход от продажи:</span>
+                    <span className="font-medium text-green-600">{formatCurrency(scenario.saleProfit)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Доход от аренды:</span>
+                    <span className="font-medium text-green-600">{formatCurrency(scenario.rentalIncome)}</span>
                   </div>
                   <hr className="my-2" />
                   <div className="flex justify-between font-semibold">
@@ -147,6 +210,22 @@ export const ScenarioAnalysis = ({ data }: ScenarioAnalysisProps) => {
                       {formatPercent(scenario.roi)}
                     </span>
                   </div>
+                  {data.npvEnabled && (
+                    <div className="flex justify-between font-semibold">
+                      <span>NPV:</span>
+                      <span className={keyMetrics.npv >= 0 ? 'text-green-600' : 'text-red-600'}>
+                        {formatCurrency(keyMetrics.npv)}
+                      </span>
+                    </div>
+                  )}
+                  {data.irrEnabled && (
+                    <div className="flex justify-between font-semibold">
+                      <span>IRR:</span>
+                      <span className={keyMetrics.irr >= 0 ? 'text-green-600' : 'text-red-600'}>
+                        {formatPercent(keyMetrics.irr)}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
