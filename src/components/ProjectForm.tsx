@@ -725,8 +725,11 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
                     Платежи после окончания строительства
                   </Label>
                   <p className="text-sm text-blue-600 mt-1">
-                    {100 - data.paymentPlan.downPayment.value - data.paymentPlan.constructionPayments.percentage}% 
-                    будет списано в день запуска проекта
+                    {100 - data.paymentPlan.downPayment.value -
+                      data.paymentPlan.constructionPayments.percentage}% будет
+                    списано в день запуска проекта. Если дата входа позже даты
+                    завершения строительства, вся сумма будет списана в дату
+                    входа.
                   </p>
                 </div>
               </div>
