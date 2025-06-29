@@ -85,11 +85,16 @@ export const ScenarioAnalysis = ({ data }: ScenarioAnalysisProps) => {
 
   const COLORS = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444'];
 
-  // Custom function to render bars with conditional colors
-  const renderCustomizedBar = (props: any) => {
+  interface CustomBarProps {
+    payload: { impact: number };
+    fill?: string;
+    [key: string]: unknown;
+  }
+
+  const renderCustomizedBar = (props: CustomBarProps) => {
     const { fill, ...rest } = props;
     const barColor = props.payload.impact >= 0 ? '#10b981' : '#ef4444';
-    return <Bar {...rest} fill={barColor} />;
+    return <Bar {...(rest as Record<string, unknown>)} fill={barColor} />;
   };
 
   return (

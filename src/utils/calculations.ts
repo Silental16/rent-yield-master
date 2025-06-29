@@ -457,11 +457,12 @@ export class FinancialCalculations {
         this.data.annualRepair.value *= value;
         this.data.insurance.value *= value;
         break;
-      case 'delay':
+      case 'delay': {
         const constructionDate = new Date(this.data.constructionEndDate);
         constructionDate.setMonth(constructionDate.getMonth() + value);
         this.data.constructionEndDate = constructionDate.toISOString().split('T')[0];
         break;
+      }
     }
     
     const metrics = this.calculateKeyMetrics();

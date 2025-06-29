@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
 import { PlusCircle } from 'lucide-react';
-import { DragDropContext, Droppable } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, type DropResult } from 'react-beautiful-dnd';
 import { DraggableListItem } from './DraggableListItem';
 import { ProjectData } from '@/pages/Index';
 
@@ -39,14 +39,18 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
     });
   };
 
-  const updatePricingStage = (index: number, field: string, value: any) => {
+  const updatePricingStage = (
+    index: number,
+    field: string,
+    value: string | number,
+  ) => {
     const updated = data.pricingStages.map((stage, i) => 
       i === index ? { ...stage, [field]: value } : stage
     );
     updateData({ pricingStages: updated });
   };
 
-  const onDragEndPricingStages = (result: any) => {
+  const onDragEndPricingStages = (result: DropResult) => {
     if (!result.destination) return;
 
     const items = Array.from(data.pricingStages);
@@ -68,7 +72,7 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
     });
   };
 
-  const onDragEndRevenueExpenses = (result: any) => {
+  const onDragEndRevenueExpenses = (result: DropResult) => {
     if (!result.destination) return;
 
     const items = Array.from(data.revenueExpenses);
@@ -90,7 +94,7 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
     });
   };
 
-  const onDragEndProfitExpenses = (result: any) => {
+  const onDragEndProfitExpenses = (result: DropResult) => {
     if (!result.destination) return;
 
     const items = Array.from(data.profitExpenses);
