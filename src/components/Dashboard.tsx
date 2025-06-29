@@ -233,6 +233,44 @@ export const Dashboard = ({ data }: DashboardProps) => {
                   </tr>
                 ))}
                 <tr className="border-b border-gray-100">
+                  <td className="p-3 pl-6 text-red-600">- Операционные расходы</td>
+                  {rentalTable.map((year, index) => (
+                    <td key={index} className="text-center p-3 text-red-600">
+                      -{formatCurrency(year.operationalExpenses)}
+                    </td>
+                  ))}
+                </tr>
+                {data.monthlyExpenses.enabled && (
+                  <tr className="border-b border-gray-50">
+                    <td className="p-3 pl-12 text-sm text-gray-600">- Месячные расходы</td>
+                    {rentalTable.map((_, index) => (
+                      <td key={index} className="text-center p-3 text-sm text-gray-500">
+                        -{formatCurrency(data.monthlyExpenses.value * 12)}
+                      </td>
+                    ))}
+                  </tr>
+                )}
+                {data.annualRepair.enabled && (
+                  <tr className="border-b border-gray-50">
+                    <td className="p-3 pl-12 text-sm text-gray-600">- Годовой ремонт</td>
+                    {rentalTable.map((_, index) => (
+                      <td key={index} className="text-center p-3 text-sm text-gray-500">
+                        -{formatCurrency(data.annualRepair.value)}
+                      </td>
+                    ))}
+                  </tr>
+                )}
+                {data.insurance.enabled && (
+                  <tr className="border-b border-gray-50">
+                    <td className="p-3 pl-12 text-sm text-gray-600">- Страховка</td>
+                    {rentalTable.map((_, index) => (
+                      <td key={index} className="text-center p-3 text-sm text-gray-500">
+                        -{formatCurrency(data.insurance.value)}
+                      </td>
+                    ))}
+                  </tr>
+                )}
+                <tr className="border-b border-gray-100">
                   <td className="p-3 font-semibold text-green-700 bg-green-50">Операционная прибыль</td>
                   {rentalTable.map((year, index) => (
                     <td key={index} className="text-center p-3 text-green-600 font-semibold">
@@ -258,44 +296,6 @@ export const Dashboard = ({ data }: DashboardProps) => {
                     ))}
                   </tr>
                 ))}
-                <tr className="border-b border-gray-100">
-                  <td className="p-3 pl-6 text-red-600">- Операционные расходы</td>
-                  {rentalTable.map((year, index) => (
-                    <td key={index} className="text-center p-3 text-red-600">
-                      -{formatCurrency(year.operationalExpenses)}
-                    </td>
-                  ))}
-                </tr>
-                {data.monthlyExpenses.enabled && (
-                  <tr className="border-b border-gray-50">
-                    <td className="p-3 pl-12 text-sm text-gray-600">- Месячные расходы</td>
-                    {rentalTable.map((_, index) => (
-                      <td key={index} className="text-center p-3 text-sm text-gray-500">
-                        -{formatCurrency(data.monthlyExpenses.value * 12)}
-                      </td>
-                    ))}
-                  </tr>
-                )}
-                {data.annualRepair.enabled && (
-                  <tr className="border-b border-gray-50">
-                    <td className="p-3 pl-12 text-sm text-gray-600">- Годовые ремонт</td>
-                    {rentalTable.map((_, index) => (
-                      <td key={index} className="text-center p-3 text-sm text-gray-500">
-                        -{formatCurrency(data.annualRepair.value)}
-                      </td>
-                    ))}
-                  </tr>
-                )}
-                {data.insurance.enabled && (
-                  <tr className="border-b border-gray-50">
-                    <td className="p-3 pl-12 text-sm text-gray-600">- Страховка</td>
-                    {rentalTable.map((_, index) => (
-                      <td key={index} className="text-center p-3 text-sm text-gray-500">
-                        -{formatCurrency(data.insurance.value)}
-                      </td>
-                    ))}
-                  </tr>
-                )}
                 <tr className="border-b-2 border-gray-200 bg-purple-50">
                   <td className="p-3 font-bold text-purple-700">Чистая прибыль</td>
                   {rentalTable.map((year, index) => (
