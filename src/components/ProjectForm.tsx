@@ -6,17 +6,10 @@ import { Slider } from '@/components/ui/slider';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, CreditCard } from 'lucide-react';
+import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-
+import { DragDropListEditor } from './DragDropListEditor';
 import { ProjectData } from '@/pages/Index';
 
 interface ProjectFormProps {
@@ -326,50 +319,27 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
         <CardHeader>
           <CardTitle>Этапы ценообразования</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-6">
-          {data.pricingStages.map((stage, index) => (
-            <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor={`stageName-${index}`}>Название этапа</Label>
-                <Input
-                  type="text"
-                  id={`stageName-${index}`}
-                  value={stage.name}
-                  onChange={(e) => {
-                    const newStages = [...data.pricingStages];
-                    newStages[index] = { ...stage, name: e.target.value };
-                    onChange({ ...data, pricingStages: newStages });
-                  }}
-                />
-              </div>
-              <div>
-                <Label htmlFor={`stagePercentage-${index}`}>Процент от базовой стоимости (%)</Label>
-                <Input
-                  type="number"
-                  id={`stagePercentage-${index}`}
-                  value={stage.percentage}
-                  onChange={(e) => {
-                    const newStages = [...data.pricingStages];
-                    newStages[index] = { ...stage, percentage: parseFloat(e.target.value) };
-                    onChange({ ...data, pricingStages: newStages });
-                  }}
-                />
-              </div>
-              <div>
-                <Label htmlFor={`stageDate-${index}`}>Дата начала этапа</Label>
-                <Input
-                  type="date"
-                  id={`stageDate-${index}`}
-                  value={stage.date}
-                  onChange={(e) => {
-                    const newStages = [...data.pricingStages];
-                    newStages[index] = { ...stage, date: e.target.value };
-                    onChange({ ...data, pricingStages: newStages });
-                  }}
-                />
-              </div>
-            </div>
-          ))}
+        <CardContent>
+          <DragDropListEditor
+            items={data.pricingStages.map(stage => ({
+              id: `${stage.name}-${stage.date}`,
+              name: stage.name,
+              percentage: stage.percentage,
+              date: stage.date
+            }))}
+            onItemsChange={(items) => {
+              const newStages = items.map(item => ({
+                name: item.name,
+                percentage: item.percentage,
+                date: item.date || new Date().toISOString().split('T')[0]
+              }));
+              onChange({ ...data, pricingStages: newStages });
+            }}
+            title="Этапы ценообразования"
+            showDate={true}
+            itemNamePlaceholder="Название этапа"
+            addButtonText="Добавить этап"
+          />
         </CardContent>
       </Card>
 
@@ -494,37 +464,24 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
         <CardHeader>
           <CardTitle>Расходы из выручки</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-6">
-          {data.revenueExpenses.map((expense, index) => (
-            <div key={index} className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor={`revenueExpenseName-${index}`}>Название расхода</Label>
-                <Input
-                  type="text"
-                  id={`revenueExpenseName-${index}`}
-                  value={expense.name}
-                  onChange={(e) => {
-                    const newExpenses = [...data.revenueExpenses];
-                    newExpenses[index] = { ...expense, name: e.target.value };
-                    onChange({ ...data, revenueExpenses: newExpenses });
-                  }}
-                />
-              </div>
-              <div>
-                <Label htmlFor={`revenueExpensePercentage-${index}`}>Процент от выручки (%)</Label>
-                <Input
-                  type="number"
-                  id={`revenueExpensePercentage-${index}`}
-                  value={expense.percentage}
-                  onChange={(e) => {
-                    const newExpenses = [...data.revenueExpenses];
-                    newExpenses[index] = { ...expense, percentage: parseFloat(e.target.value) };
-                    onChange({ ...data, revenueExpenses: newExpenses });
-                  }}
-                />
-              </div>
-            </div>
-          ))}
+        <CardContent>
+          <DragDropListEditor
+            items={data.revenueExpenses.map((expense, index) => ({
+              id: `revenue-${index}`,
+              name: expense.name,
+              percentage: expense.percentage
+            }))}
+            onItemsChange={(items) => {
+              const newExpenses = items.map(item => ({
+                name: item.name,
+                percentage: item.percentage
+              }));
+              onChange({ ...data, revenueExpenses: newExpenses });
+            }}
+            title="Расходы из выручки"
+            itemNamePlaceholder="Название расхода"
+            addButtonText="Добавить расход"
+          />
         </CardContent>
       </Card>
 
@@ -532,206 +489,24 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
         <CardHeader>
           <CardTitle>Расходы из прибыли</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-6">
-          {data.profitExpenses.map((expense, index) => (
-            <div key={index} className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor={`profitExpenseName-${index}`}>Название расхода</Label>
-                <Input
-                  type="text"
-                  id={`profitExpenseName-${index}`}
-                  value={expense.name}
-                  onChange={(e) => {
-                    const newExpenses = [...data.profitExpenses];
-                    newExpenses[index] = { ...expense, name: e.target.value };
-                    onChange({ ...data, profitExpenses: newExpenses });
-                  }}
-                />
-              </div>
-              <div>
-                <Label htmlFor={`profitExpensePercentage-${index}`}>Процент от прибыли (%)</Label>
-                <Input
-                  type="number"
-                  id={`profitExpensePercentage-${index}`}
-                  value={expense.percentage}
-                  onChange={(e) => {
-                    const newExpenses = [...data.profitExpenses];
-                    newExpenses[index] = { ...expense, percentage: parseFloat(e.target.value) };
-                    onChange({ ...data, profitExpenses: newExpenses });
-                  }}
-                />
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="w-5 h-5" />
-            План оплаты
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <p className="text-sm text-blue-800">
-              <strong>Примечание:</strong> Данный раздел сохранен для совместимости. 
-              Для полного управления планами оплаты используйте новую систему в разделе "Планы оплаты".
-            </p>
-          </div>
-          
-          <div>
-            <Label>Тип плана оплаты</Label>
-            <Select
-              value={data.paymentPlan.type}
-              onValueChange={(value) =>
-                onChange({
-                  ...data,
-                  paymentPlan: { ...data.paymentPlan, type: value as 'full' | 'prelaunch' | 'monthly' },
-                })
-              }
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Выберите тип" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="full">Полная оплата</SelectItem>
-                <SelectItem value="prelaunch">До запуска</SelectItem>
-                <SelectItem value="monthly">Рассрочка</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {data.paymentPlan.type === 'monthly' && (
-            <div>
-              <Label htmlFor="months">Количество месяцев</Label>
-              <Input
-                type="number"
-                id="months"
-                value={data.paymentPlan.months || ''}
-                onChange={(e) =>
-                  onChange({
-                    ...data,
-                    paymentPlan: { ...data.paymentPlan, months: parseInt(e.target.value) },
-                  })
-                }
-              />
-            </div>
-          )}
-
-          <div>
-            <Label>Тип скидки</Label>
-            <Select
-              value={data.paymentPlan.discountType}
-              onValueChange={(value) =>
-                onChange({
-                  ...data,
-                  paymentPlan: { ...data.paymentPlan, discountType: value as 'percentage' | 'fixed' },
-                })
-              }
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Выберите тип" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="percentage">Процент</SelectItem>
-                <SelectItem value="fixed">Фиксированная сумма</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="discountValue">Размер скидки</Label>
-            <Input
-              type="number"
-              id="discountValue"
-              value={data.paymentPlan.discountValue}
-              onChange={(e) =>
-                onChange({
-                  ...data,
-                  paymentPlan: { ...data.paymentPlan, discountValue: parseFloat(e.target.value) },
-                })
-              }
-            />
-          </div>
-
-          <div>
-            <Label>Включить рассрочку</Label>
-            <Button
-              variant="outline"
-              onClick={() =>
-                onChange({
-                  ...data,
-                  paymentPlan: { ...data.paymentPlan, isInstallment: !data.paymentPlan.isInstallment },
-                })
-              }
-            >
-              {data.paymentPlan.isInstallment ? 'Выключить' : 'Включить'}
-            </Button>
-          </div>
-
-          <div>
-            <Label>Тип первого взноса</Label>
-            <Select
-              value={data.paymentPlan.downPayment.type}
-              onValueChange={(value) =>
-                onChange({
-                  ...data,
-                  paymentPlan: {
-                    ...data.paymentPlan,
-                    downPayment: { ...data.paymentPlan.downPayment, type: value as 'percentage' | 'fixed' },
-                  },
-                })
-              }
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Выберите тип" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="percentage">Процент</SelectItem>
-                <SelectItem value="fixed">Фиксированная сумма</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="downPaymentValue">Размер первого взноса</Label>
-            <Input
-              type="number"
-              id="downPaymentValue"
-              value={data.paymentPlan.downPayment.value}
-              onChange={(e) =>
-                onChange({
-                  ...data,
-                  paymentPlan: {
-                    ...data.paymentPlan,
-                    downPayment: { ...data.paymentPlan.downPayment, value: parseFloat(e.target.value) },
-                  },
-                })
-              }
-            />
-          </div>
-
-          {data.paymentPlan.type === 'prelaunch' && (
-            <div>
-              <Label htmlFor="constructionPaymentsPercentage">Процент выплат во время строительства</Label>
-              <Input
-                type="number"
-                id="constructionPaymentsPercentage"
-                value={data.paymentPlan.constructionPayments.percentage}
-                onChange={(e) =>
-                  onChange({
-                    ...data,
-                    paymentPlan: {
-                      ...data.paymentPlan,
-                      constructionPayments: { percentage: parseFloat(e.target.value) },
-                    },
-                  })
-                }
-              />
-            </div>
-          )}
+        <CardContent>
+          <DragDropListEditor
+            items={data.profitExpenses.map((expense, index) => ({
+              id: `profit-${index}`,
+              name: expense.name,
+              percentage: expense.percentage
+            }))}
+            onItemsChange={(items) => {
+              const newExpenses = items.map(item => ({
+                name: item.name,
+                percentage: item.percentage
+              }));
+              onChange({ ...data, profitExpenses: newExpenses });
+            }}
+            title="Расходы из прибыли"
+            itemNamePlaceholder="Название расхода"
+            addButtonText="Добавить расход"
+          />
         </CardContent>
       </Card>
     </div>

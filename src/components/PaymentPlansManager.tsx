@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,6 +23,7 @@ export const PaymentPlansManager = () => {
   };
 
   const handleDeletePlan = (planId: string) => {
+    if (planId === 'default') return; // Prevent deletion of default plan
     if (confirm('Вы уверены, что хотите удалить этот план оплаты?')) {
       deletePlan(planId);
     }
@@ -89,45 +89,39 @@ export const PaymentPlansManager = () => {
       </div>
 
       <div className="grid gap-4">
-        {plans.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <CreditCard className="w-12 h-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Нет планов оплаты</h3>
-              <p className="text-gray-600 text-center mb-4">
-                Создайте первый план оплаты для ваших клиентов
-              </p>
-              <Button onClick={handleCreatePlan}>
-                Создать план
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          plans.map((plan) => (
-            <Card key={plan.id} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {getTypeIcon(plan.type)}
-                    <div>
-                      <CardTitle className="text-lg">{plan.name}</CardTitle>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="secondary">{getTypeLabel(plan.type)}</Badge>
-                        <Badge variant="outline">{getDiscountLabel(plan)}</Badge>
-                        <Badge variant={plan.isActive ? 'default' : 'secondary'}>
-                          {plan.isActive ? 'Активен' : 'Неактивен'}
+        {plans.map((plan) => (
+          <Card key={plan.id} className="hover:shadow-md transition-shadow">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {getTypeIcon(plan.type)}
+                  <div>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      {plan.name}
+                      {plan.id === 'default' && (
+                        <Badge variant="outline" className="text-xs">
+                          По умолчанию
                         </Badge>
-                      </div>
+                      )}
+                    </CardTitle>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="secondary">{getTypeLabel(plan.type)}</Badge>
+                      <Badge variant="outline">{getDiscountLabel(plan)}</Badge>
+                      <Badge variant={plan.isActive ? 'default' : 'secondary'}>
+                        {plan.isActive ? 'Активен' : 'Неактивен'}
+                      </Badge>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleEditPlan(plan)}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleEditPlan(plan)}
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  {plan.id !== 'default' && (
                     <Button 
                       variant="outline" 
                       size="sm"
@@ -136,15 +130,15 @@ export const PaymentPlansManager = () => {
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
-                  </div>
+                  )}
                 </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">{getConditionsDescription(plan)}</p>
-              </CardContent>
-            </Card>
-          ))
-        )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">{getConditionsDescription(plan)}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       <PaymentPlanForm

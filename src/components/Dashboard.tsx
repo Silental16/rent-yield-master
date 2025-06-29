@@ -1,14 +1,20 @@
-
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProjectData } from '@/pages/Index';
 import { FinancialCalculations } from '@/utils/calculations';
+import { PaymentPlanSelector } from './PaymentPlanSelector';
+import { usePaymentPlans } from '@/hooks/usePaymentPlans';
 
 interface DashboardProps {
   data: ProjectData;
 }
 
 export const Dashboard = ({ data }: DashboardProps) => {
-  const calculations = new FinancialCalculations(data);
+  const { getDefaultPlan, plans } = usePaymentPlans();
+  const [selectedPlanId, setSelectedPlanId] = useState(getDefaultPlan().id);
+  
+  const selectedPlan = plans.find(plan => plan.id === selectedPlanId) || getDefaultPlan();
+  const calculations = new FinancialCalculations(data, selectedPlan);
   const rentalIncome = calculations.calculateRentalIncome();
   const keyMetrics = calculations.calculateKeyMetrics();
 
@@ -42,6 +48,11 @@ export const Dashboard = ({ data }: DashboardProps) => {
 
   return (
     <div className="space-y-6">
+      <PaymentPlanSelector 
+        selectedPlanId={selectedPlanId}
+        onPlanChange={setSelectedPlanId}
+      />
+
       {/* Ключевые метрики */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 shadow-lg">
@@ -248,7 +259,6 @@ export const Dashboard = ({ data }: DashboardProps) => {
                   <td className="p-3 font-semibold text-red-700 bg-red-50">- Расходы из прибыли</td>
                   {rentalIncome.map((year) => (
                     <td key={`profit-exp-${year.year}`} className="text-center p-3 text-red-600">
-                      {/* Исправляем логику: если прибыль отрицательная, расходы должны быть 0 или положительными */}
                       {year.operatingProfit > 0 ? `-${formatCurrency(year.profitExpenses)}` : formatCurrency(0)}
                     </td>
                   ))}
@@ -259,7 +269,6 @@ export const Dashboard = ({ data }: DashboardProps) => {
                   <tr key={`profit-exp-detail-${expenseIndex}`} className="border-b border-gray-50">
                     <td className="p-3 pl-8 text-sm text-gray-600">- {expense.name}</td>
                     {rentalIncome.map((year) => {
-                      // Расходы из прибыли применяются только если есть положительная прибыль
                       const amount = year.operatingProfit > 0 ? year.operatingProfit * (expense.percentage / 100) : 0;
                       return (
                         <td key={`profit-exp-detail-${expenseIndex}-${year.year}`} className="text-center p-3 text-xs text-gray-500">
