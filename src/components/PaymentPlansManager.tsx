@@ -42,8 +42,8 @@ export const PaymentPlansManager = ({ onPaymentPlanSelect }: PaymentPlansManager
   const formatPlanType = (type: string) => {
     const types = {
       'full': 'Полная оплата',
-      'installment': 'Рассрочка',
-      'mortgage': 'Ипотека'
+      'construction': 'До конца стройки',
+      'fixed': 'Фиксированная рассрочка'
     };
     return types[type as keyof typeof types] || type;
   };
@@ -57,7 +57,11 @@ export const PaymentPlansManager = ({ onPaymentPlanSelect }: PaymentPlansManager
             Отмена
           </Button>
         </div>
-        <PaymentPlanForm onSubmit={handleCreatePlan} />
+        <PaymentPlanForm 
+          isOpen={true}
+          onClose={() => setIsCreating(false)}
+          onSubmit={handleCreatePlan} 
+        />
       </div>
     );
   }
@@ -72,7 +76,9 @@ export const PaymentPlansManager = ({ onPaymentPlanSelect }: PaymentPlansManager
           </Button>
         </div>
         <PaymentPlanForm 
-          initialData={editingPlan}
+          isOpen={true}
+          onClose={() => setEditingPlan(null)}
+          editingPlan={editingPlan}
           onSubmit={handleUpdatePlan} 
         />
       </div>
@@ -132,22 +138,17 @@ export const PaymentPlansManager = ({ onPaymentPlanSelect }: PaymentPlansManager
                 <p className="font-medium">{formatDiscount(plan)}</p>
               </div>
 
-              {plan.type === 'installment' && plan.installments && (
+              {plan.type === 'fixed' && plan.installmentMonths && (
                 <div>
                   <p className="text-sm text-gray-600">Рассрочка</p>
-                  <p className="font-medium">{plan.installments.length} платежей</p>
+                  <p className="font-medium">{plan.installmentMonths} месяцев</p>
                 </div>
               )}
 
-              {plan.type === 'mortgage' && plan.mortgage && (
+              {plan.type === 'construction' && plan.downPaymentPercent && (
                 <div>
-                  <p className="text-sm text-gray-600">Ипотека</p>
-                  <p className="font-medium">
-                    {plan.mortgage.downPaymentPercentage}% первоначальный взнос
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {plan.mortgage.termYears} лет, {plan.mortgage.interestRate}% годовых
-                  </p>
+                  <p className="text-sm text-gray-600">Первоначальный взнос</p>
+                  <p className="font-medium">{plan.downPaymentPercent}%</p>
                 </div>
               )}
 
