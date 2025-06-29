@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProjectData } from '@/pages/Index';
 import { FinancialCalculations } from '@/utils/calculations';
@@ -212,7 +211,7 @@ export const Dashboard = ({ data }: DashboardProps) => {
                   <td className="p-3 pl-6 text-red-600">- Расходы из выручки</td>
                   {rentalTable.map((year, index) => (
                     <td key={index} className="text-center p-3 text-red-600">
-                      -{formatCurrency(year.revenueExpenses)}
+                      -{formatCurrency(year.revenueExpenses + year.operationalExpenses)}
                     </td>
                   ))}
                 </tr>
@@ -221,45 +220,13 @@ export const Dashboard = ({ data }: DashboardProps) => {
                     <td className="p-3 pl-12 text-sm text-gray-600">- {expense.name}</td>
                     {rentalTable.map((year, yearIndex) => (
                       <td key={yearIndex} className="text-center p-3 text-sm text-gray-500">
-                        -{formatCurrency(year.grossIncome * expense.percentage / 100)}
+                        -{formatCurrency(expense.name.toLowerCase().includes('ota') || expense.name.toLowerCase().includes('комиссия ota') 
+                          ? year.grossIncome * (data.otaBookings / 100) * (expense.percentage / 100)
+                          : year.grossIncome * expense.percentage / 100)}
                       </td>
                     ))}
                   </tr>
                 ))}
-                <tr className="border-b border-gray-100">
-                  <td className="p-3 font-semibold text-green-700 bg-green-50">Операционная прибыль</td>
-                  {rentalTable.map((year, index) => (
-                    <td key={index} className="text-center p-3 text-green-600 font-semibold">
-                      {formatCurrency(year.operatingProfit)}
-                    </td>
-                  ))}
-                </tr>
-                <tr className="border-b border-gray-100">
-                  <td className="p-3 pl-6 text-red-600">- Расходы из прибыли</td>
-                  {rentalTable.map((year, index) => (
-                    <td key={index} className="text-center p-3 text-red-600">
-                      -{formatCurrency(year.profitExpenses)}
-                    </td>
-                  ))}
-                </tr>
-                {data.profitExpenses.map((expense, expenseIndex) => (
-                  <tr key={expenseIndex} className="border-b border-gray-50">
-                    <td className="p-3 pl-12 text-sm text-gray-600">- {expense.name}</td>
-                    {rentalTable.map((year, yearIndex) => (
-                      <td key={yearIndex} className="text-center p-3 text-sm text-gray-500">
-                        -{formatCurrency(year.operatingProfit * expense.percentage / 100)}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-                <tr className="border-b border-gray-100">
-                  <td className="p-3 pl-6 text-red-600">- Операционные расходы</td>
-                  {rentalTable.map((year, index) => (
-                    <td key={index} className="text-center p-3 text-red-600">
-                      -{formatCurrency(year.operationalExpenses)}
-                    </td>
-                  ))}
-                </tr>
                 {data.monthlyExpenses.enabled && (
                   <tr className="border-b border-gray-50">
                     <td className="p-3 pl-12 text-sm text-gray-600">- Месячные расходы</td>
@@ -290,6 +257,32 @@ export const Dashboard = ({ data }: DashboardProps) => {
                     ))}
                   </tr>
                 )}
+                <tr className="border-b border-gray-100">
+                  <td className="p-3 font-semibold text-green-700 bg-green-50">Операционная прибыль</td>
+                  {rentalTable.map((year, index) => (
+                    <td key={index} className="text-center p-3 text-green-600 font-semibold">
+                      {formatCurrency(year.operatingProfit)}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b border-gray-100">
+                  <td className="p-3 pl-6 text-red-600">- Расходы из прибыли</td>
+                  {rentalTable.map((year, index) => (
+                    <td key={index} className="text-center p-3 text-red-600">
+                      -{formatCurrency(year.profitExpenses)}
+                    </td>
+                  ))}
+                </tr>
+                {data.profitExpenses.map((expense, expenseIndex) => (
+                  <tr key={expenseIndex} className="border-b border-gray-50">
+                    <td className="p-3 pl-12 text-sm text-gray-600">- {expense.name}</td>
+                    {rentalTable.map((year, yearIndex) => (
+                      <td key={yearIndex} className="text-center p-3 text-sm text-gray-500">
+                        -{formatCurrency(year.operatingProfit * expense.percentage / 100)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
                 <tr className="border-b-2 border-gray-200 bg-purple-50">
                   <td className="p-3 font-bold text-purple-700">Чистая прибыль</td>
                   {rentalTable.map((year, index) => (
