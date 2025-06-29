@@ -72,8 +72,6 @@ export interface ProjectData {
     downPayment: { type: 'percentage' | 'fixed'; value: number };
     constructionPayments: {
       percentage: number;
-      mode: 'monthly' | 'fixed';
-      count?: number;
     };
   };
 }
@@ -129,8 +127,7 @@ const Index = () => {
       isInstallment: true,
       downPayment: { type: 'percentage', value: 30 },
       constructionPayments: {
-        percentage: 50,
-        mode: 'monthly'
+        percentage: 50
       }
     }
   });
