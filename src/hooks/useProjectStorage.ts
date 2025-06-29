@@ -10,94 +10,108 @@ interface StoredProject {
   updatedAt: string;
 }
 
-export const useProjectStorage = (initialData: ProjectData) => {
-  const [currentProject, setCurrentProject] = useState<ProjectData>(initialData);
-  const [savedProjects, setSavedProjects] = useState<StoredProject[]>([]);
-  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+export const useProjectStorage = () => {
+  const [currentProject, setCurrentProject] = useState<StoredProject | null>(null);
+  const [projects, setProjects] = useState<StoredProject[]>([]);
 
-  // Загрузка сохраненных проектов при инициализации
+  const defaultProjectData: ProjectData = {
+    name: 'Новый проект',
+    area: 25,
+    cost: 100000,
+    adr: 150,
+    occupancy: 70,
+    agr: 5,
+    propertyGrowth: 8,
+    leaseholdTerm: 30,
+    variableCosts: 5,
+    agentCommission: 3,
+    entryDate: new Date().toISOString().split('T')[0],
+    constructionEndDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    directBookings: 30,
+    otaBookings: 70,
+    pricingStages: [
+      {
+        name: 'Базовая цена',
+        price: 100000,
+        percentage: 100,
+        date: new Date().toISOString().split('T')[0]
+      }
+    ],
+    revenueExpenses: [
+      { name: 'Комиссия УК с выручки', percentage: 12 },
+      { name: 'Комиссия OTA', percentage: 15 },
+      { name: 'Уборка', percentage: 8 },
+      { name: 'Белье', percentage: 3 }
+    ],
+    profitExpenses: [
+      { name: 'Налог с прибыли', percentage: 20 },
+      { name: 'Комиссия УК с прибыли', percentage: 10 }
+    ],
+    monthlyExpenses: {
+      enabled: true,
+      value: 200
+    },
+    annualRepair: {
+      enabled: true,
+      value: 2000
+    },
+    insurance: {
+      enabled: true,
+      value: 1500
+    },
+    seasonality: {
+      enabled: false,
+      coefficients: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    },
+    npvEnabled: false,
+    discountRate: 10,
+    irrEnabled: false
+  };
+
+  // Load projects from localStorage on mount
   useEffect(() => {
     const stored = localStorage.getItem('financial-projects');
     if (stored) {
       try {
-        const projects = JSON.parse(stored);
-        setSavedProjects(projects);
+        const parsedProjects = JSON.parse(stored);
+        setProjects(parsedProjects);
       } catch (error) {
-        console.error('Ошибка загрузки проектов:', error);
-      }
-    }
-
-    // Загрузка текущих данных
-    const currentData = localStorage.getItem('financial-current-data');
-    if (currentData) {
-      try {
-        const data = JSON.parse(currentData);
-        setCurrentProject(data);
-      } catch (error) {
-        console.error('Ошибка загрузки текущих данных:', error);
+        console.error('Error loading projects:', error);
       }
     }
   }, []);
 
-  // Сохранение текущих данных при изменении
+  // Save projects to localStorage when they change
   useEffect(() => {
-    localStorage.setItem('financial-current-data', JSON.stringify(currentProject));
-  }, [currentProject]);
+    localStorage.setItem('financial-projects', JSON.stringify(projects));
+  }, [projects]);
 
-  // Сохранение списка проектов при изменении
-  useEffect(() => {
-    localStorage.setItem('financial-projects', JSON.stringify(savedProjects));
-  }, [savedProjects]);
-
-  const saveCurrentProject = (name: string) => {
-    const newProject: StoredProject = {
-      id: Date.now().toString(),
-      name,
-      data: { ...currentProject },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    setSavedProjects(prev => [...prev, newProject]);
-    setActiveProjectId(newProject.id);
-    return newProject.id;
-  };
-
-  const loadProject = (projectId: string) => {
-    const project = savedProjects.find(p => p.id === projectId);
-    if (project) {
-      setCurrentProject(project.data);
-      setActiveProjectId(projectId);
-    }
+  const saveProject = (project: StoredProject) => {
+    setProjects(prev => {
+      const existingIndex = prev.findIndex(p => p.id === project.id);
+      if (existingIndex >= 0) {
+        const updated = [...prev];
+        updated[existingIndex] = { ...project, updatedAt: new Date().toISOString() };
+        return updated;
+      } else {
+        return [...prev, project];
+      }
+    });
   };
 
   const deleteProject = (projectId: string) => {
-    setSavedProjects(prev => prev.filter(p => p.id !== projectId));
-    if (activeProjectId === projectId) {
-      setActiveProjectId(null);
-    }
-  };
-
-  const updateCurrentProject = (data: ProjectData) => {
-    setCurrentProject(data);
-    
-    // Если есть активный проект, обновляем его
-    if (activeProjectId) {
-      setSavedProjects(prev => prev.map(p => 
-        p.id === activeProjectId 
-          ? { ...p, data: { ...data }, updatedAt: new Date().toISOString() }
-          : p
-      ));
+    setProjects(prev => prev.filter(p => p.id !== projectId));
+    if (currentProject?.id === projectId) {
+      setCurrentProject(null);
     }
   };
 
   return {
+    projects,
     currentProject,
-    savedProjects,
-    activeProjectId,
-    saveCurrentProject,
-    loadProject,
+    setCurrentProject,
+    saveProject,
     deleteProject,
-    updateCurrentProject
+    defaultProjectData
   };
 };

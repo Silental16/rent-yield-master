@@ -6,35 +6,60 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Plus, Trash2, Save, FolderOpen } from 'lucide-react';
+import { ProjectData } from '@/pages/Index';
+
+interface StoredProject {
+  id: string;
+  name: string;
+  data: ProjectData;
+  createdAt: string;
+  updatedAt: string;
+}
 
 interface ProjectManagerProps {
-  savedProjects: Array<{
-    id: string;
-    name: string;
-    createdAt: string;
-    updatedAt: string;
-  }>;
-  activeProjectId: string | null;
-  onSaveProject: (name: string) => void;
-  onLoadProject: (projectId: string) => void;
-  onDeleteProject: (projectId: string) => void;
+  projects: StoredProject[];
+  currentProject: StoredProject | null;
+  onProjectSelect: (project: StoredProject | null) => void;
+  onProjectSave: (project: StoredProject) => void;
+  onProjectDelete: (projectId: string) => void;
+  projectData: ProjectData;
+  onProjectDataChange: (data: ProjectData) => void;
 }
 
 export const ProjectManager = ({
-  savedProjects,
-  activeProjectId,
-  onSaveProject,
-  onLoadProject,
-  onDeleteProject
+  projects,
+  currentProject,
+  onProjectSelect,
+  onProjectSave,
+  onProjectDelete,
+  projectData,
+  onProjectDataChange
 }: ProjectManagerProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [projectName, setProjectName] = useState('');
 
   const handleSaveProject = () => {
     if (projectName.trim()) {
-      onSaveProject(projectName.trim());
+      const newProject: StoredProject = {
+        id: currentProject?.id || Date.now().toString(),
+        name: projectName.trim(),
+        data: projectData,
+        createdAt: currentProject?.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      onProjectSave(newProject);
+      onProjectSelect(newProject);
       setProjectName('');
       setIsDialogOpen(false);
+    }
+  };
+
+  const handleLoadProject = (projectId: string) => {
+    const project = projects.find(p => p.id === projectId);
+    if (project) {
+      onProjectSelect(project);
+      onProjectDataChange(project.data);
     }
   };
 
@@ -83,15 +108,15 @@ export const ProjectManager = ({
         </Dialog>
       </div>
 
-      {savedProjects.length > 0 && (
+      {projects.length > 0 && (
         <div className="flex gap-2 items-center">
           <FolderOpen className="w-4 h-4 text-gray-500" />
-          <Select value={activeProjectId || ''} onValueChange={onLoadProject}>
+          <Select value={currentProject?.id || ''} onValueChange={handleLoadProject}>
             <SelectTrigger className="w-64">
               <SelectValue placeholder="Выберите расчет" />
             </SelectTrigger>
             <SelectContent>
-              {savedProjects.map((project) => (
+              {projects.map((project) => (
                 <SelectItem key={project.id} value={project.id}>
                   <div className="flex justify-between items-center w-full">
                     <span>{project.name}</span>
@@ -106,12 +131,12 @@ export const ProjectManager = ({
         </div>
       )}
 
-      {savedProjects.length > 0 && (
+      {projects.length > 0 && (
         <Card className="w-full sm:w-auto">
           <CardContent className="p-4">
             <h4 className="font-semibold mb-2">Сохраненные расчеты:</h4>
             <div className="space-y-2 max-h-32 overflow-y-auto">
-              {savedProjects.map((project) => (
+              {projects.map((project) => (
                 <div key={project.id} className="flex items-center justify-between gap-2 text-sm">
                   <div className="flex-1">
                     <div className="font-medium">{project.name}</div>
@@ -122,7 +147,7 @@ export const ProjectManager = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => onDeleteProject(project.id)}
+                    onClick={() => onProjectDelete(project.id)}
                     className="text-red-500 hover:text-red-700 p-1"
                   >
                     <Trash2 className="w-3 h-3" />

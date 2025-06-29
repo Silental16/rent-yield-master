@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { ProjectForm } from '@/components/ProjectForm';
 import { Dashboard } from '@/components/Dashboard';
@@ -59,62 +60,8 @@ export interface ProjectData {
 }
 
 const Index = () => {
-  const { projects, currentProject, setCurrentProject, saveProject, deleteProject } = useProjectStorage();
+  const { projects, currentProject, setCurrentProject, saveProject, deleteProject, defaultProjectData } = useProjectStorage();
   const [selectedPaymentPlan, setSelectedPaymentPlan] = useState<PaymentPlan | undefined>();
-
-  const defaultProjectData: ProjectData = {
-    name: 'Новый проект',
-    area: 25,
-    cost: 100000,
-    adr: 150,
-    occupancy: 70,
-    agr: 5,
-    propertyGrowth: 8,
-    leaseholdTerm: 30,
-    variableCosts: 5,
-    agentCommission: 3,
-    entryDate: new Date().toISOString().split('T')[0],
-    constructionEndDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    directBookings: 30,
-    otaBookings: 70,
-    pricingStages: [
-      {
-        name: 'Базовая цена',
-        price: 100000,
-        percentage: 100000,
-        date: new Date().toISOString().split('T')[0]
-      }
-    ],
-    revenueExpenses: [
-      { name: 'Комиссия УК с выручки', percentage: 12 },
-      { name: 'Комиссия OTA', percentage: 15 },
-      { name: 'Уборка', percentage: 8 },
-      { name: 'Белье', percentage: 3 }
-    ],
-    profitExpenses: [
-      { name: 'Налог с прибыли', percentage: 20 },
-      { name: 'Комиссия УК с прибыли', percentage: 10 }
-    ],
-    monthlyExpenses: {
-      enabled: true,
-      value: 200
-    },
-    annualRepair: {
-      enabled: true,
-      value: 2000
-    },
-    insurance: {
-      enabled: true,
-      value: 1500
-    },
-    seasonality: {
-      enabled: false,
-      coefficients: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-    },
-    npvEnabled: false,
-    discountRate: 10,
-    irrEnabled: false
-  };
 
   const [projectData, setProjectData] = useState<ProjectData>(defaultProjectData);
 
@@ -124,12 +71,13 @@ const Index = () => {
     } else {
       setProjectData(defaultProjectData);
     }
-  }, [currentProject]);
+  }, [currentProject, defaultProjectData]);
 
   const handleDataChange = (newData: ProjectData) => {
     setProjectData(newData);
     if (currentProject) {
-      saveProject({ ...currentProject, data: newData });
+      const updatedProject = { ...currentProject, data: newData };
+      saveProject(updatedProject);
     }
   };
 
@@ -159,11 +107,11 @@ const Index = () => {
           </TabsContent>
           
           <TabsContent value="dashboard">
-            <Dashboard data={projectData} paymentPlan={selectedPaymentPlan} />
+            <Dashboard data={projectData} />
           </TabsContent>
           
           <TabsContent value="scenarios">
-            <ScenarioAnalysis data={projectData} paymentPlan={selectedPaymentPlan} />
+            <ScenarioAnalysis data={projectData} />
           </TabsContent>
           
           <TabsContent value="payment-plans">
