@@ -576,6 +576,32 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
             <CardTitle>План оплаты</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
+            <div>
+              <Label>Режим оплаты</Label>
+              <div className="flex gap-2 mt-2">
+                <Button
+                  size="sm"
+                  variant={data.paymentPlan.type === 'full' ? 'default' : 'outline'}
+                  onClick={() => updateData({ paymentPlan: { ...data.paymentPlan, type: 'full' } })}
+                >
+                  Полная
+                </Button>
+                <Button
+                  size="sm"
+                  variant={data.paymentPlan.type === 'prelaunch' ? 'default' : 'outline'}
+                  onClick={() => updateData({ paymentPlan: { ...data.paymentPlan, type: 'prelaunch' } })}
+                >
+                  До запуска
+                </Button>
+                <Button
+                  size="sm"
+                  variant={data.paymentPlan.type === 'monthly' ? 'default' : 'outline'}
+                  onClick={() => updateData({ paymentPlan: { ...data.paymentPlan, type: 'monthly' } })}
+                >
+                  Помесячно
+                </Button>
+              </div>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Тип скидки</Label>
@@ -627,6 +653,44 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
 
             {data.paymentPlan.isInstallment && (
               <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Тип плана</Label>
+                    <div className="flex gap-2 mt-2">
+                      <Button
+                        size="sm"
+                        variant={data.paymentPlan.type === 'construction' ? 'default' : 'outline'}
+                        onClick={() => updateData({
+                          paymentPlan: { ...data.paymentPlan, type: 'construction' }
+                        })}
+                      >
+                        Строительство
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={data.paymentPlan.type === 'monthly' ? 'default' : 'outline'}
+                        onClick={() => updateData({
+                          paymentPlan: { ...data.paymentPlan, type: 'monthly' }
+                        })}
+                      >
+                        Помесячно
+                      </Button>
+                    </div>
+                  </div>
+                  {data.paymentPlan.type === 'monthly' && (
+                    <div>
+                      <Label htmlFor="plan-months">Количество месяцев</Label>
+                      <Input
+                        id="plan-months"
+                        type="number"
+                        value={data.paymentPlan.months}
+                        onChange={(e) => updateData({
+                          paymentPlan: { ...data.paymentPlan, months: Number(e.target.value) }
+                        })}
+                      />
+                    </div>
+                  )}
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>Тип первоначального взноса</Label>
@@ -742,7 +806,9 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
                     Платежи после окончания строительства
                   </Label>
                   <p className="text-sm text-blue-600 mt-1">
+
                     {remainingPercentage}% будет списано в день запуска проекта
+
                   </p>
                   {remainingPercentage === 0 && (
                     <p className="text-xs text-red-600 mt-1">Предупреждение: финальный платеж отсутствует</p>

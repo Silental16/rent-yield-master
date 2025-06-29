@@ -63,6 +63,8 @@ export interface ProjectData {
   
   // План оплаты
   paymentPlan: {
+
+    type: 'full' | 'prelaunch' | 'monthly';
     discountType: 'percentage' | 'fixed';
     discountValue: number;
     isInstallment: boolean;
@@ -117,6 +119,9 @@ const Index = () => {
       { name: 'Налог на прибыль', percentage: 13 }
     ],
     paymentPlan: {
+
+      type: 'prelaunch',
+
       discountType: 'percentage',
       discountValue: 5,
       isInstallment: true,
