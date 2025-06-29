@@ -1,17 +1,19 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProjectData } from '@/pages/Index';
+import { PaymentPlan } from '@/types/paymentPlan';
 import { FinancialCalculations } from '@/utils/calculations';
 import { PaymentPlanSelector } from './PaymentPlanSelector';
 import { usePaymentPlans } from '@/hooks/usePaymentPlans';
 
 interface DashboardProps {
   data: ProjectData;
+  paymentPlan?: PaymentPlan;
 }
 
-export const Dashboard = ({ data }: DashboardProps) => {
+export const Dashboard = ({ data, paymentPlan }: DashboardProps) => {
   const { getDefaultPlan, plans } = usePaymentPlans();
-  const [selectedPlanId, setSelectedPlanId] = useState(getDefaultPlan().id);
+  const [selectedPlanId, setSelectedPlanId] = useState(paymentPlan?.id || getDefaultPlan().id);
   
   const selectedPlan = plans.find(plan => plan.id === selectedPlanId) || getDefaultPlan();
   const calculations = new FinancialCalculations(data, selectedPlan);
