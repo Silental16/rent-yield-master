@@ -91,7 +91,7 @@ export const Dashboard = ({ data }: DashboardProps) => {
                 </div>
                 <DollarSign className="h-8 w-8 text-purple-600" />
               </div>
-            </div>
+            </CardContent>
           </Card>
         )}
 
@@ -107,7 +107,7 @@ export const Dashboard = ({ data }: DashboardProps) => {
               <Calendar className="h-8 w-8 text-orange-600" />
             </div>
           </CardContent>
-        )}
+        </Card>
       </div>
 
       {/* График капитализации */}
