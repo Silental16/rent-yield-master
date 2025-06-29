@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProjectData } from '@/pages/Index';
 import { FinancialCalculations } from '@/utils/calculations';
@@ -35,6 +34,13 @@ export const ScenarioAnalysis = ({ data }: ScenarioAnalysisProps) => {
       exitCosts: calculations.getExitCosts(10)
     }
   ];
+
+  // Подготовка данных для графика с двумя столбцами
+  const chartData = scenarios.map(scenario => ({
+    name: scenario.name,
+    investment: data.cost, // Изначальная стоимость юнита
+    totalValue: scenario.propertyValue + scenario.rentalIncome - scenario.exitCosts // Общая ценность
+  }));
 
   const scenarioData = scenarios.map(scenario => ({
     ...scenario,
@@ -85,18 +91,6 @@ export const ScenarioAnalysis = ({ data }: ScenarioAnalysisProps) => {
 
   const COLORS = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444'];
 
-  interface CustomBarProps {
-    payload: { impact: number };
-    fill?: string;
-    [key: string]: unknown;
-  }
-
-  const renderCustomizedBar = (props: CustomBarProps) => {
-    const { fill, ...rest } = props;
-    const barColor = props.payload.impact >= 0 ? '#10b981' : '#ef4444';
-    return <Bar {...(rest as Record<string, unknown>)} fill={barColor} />;
-  };
-
   return (
     <div className="space-y-6">
       {/* Сценарии выхода */}
@@ -107,14 +101,18 @@ export const ScenarioAnalysis = ({ data }: ScenarioAnalysisProps) => {
         <CardContent>
           <div className="h-80 mb-6">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={scenarioData}>
+              <BarChart data={chartData} barCategoryGap="20%">
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis tickFormatter={formatCurrency} />
                 <Tooltip 
-                  formatter={(value: number) => [formatCurrency(value), 'Общий доход']}
+                  formatter={(value: number, name: string) => [
+                    formatCurrency(value), 
+                    name === 'investment' ? 'Инвестиции' : 'Доход'
+                  ]}
                 />
-                <Bar dataKey="totalReturn" fill="#8b5cf6" />
+                <Bar dataKey="investment" fill="#9ca3af" name="Инвестиции" />
+                <Bar dataKey="totalValue" fill="#059669" name="Доход" />
               </BarChart>
             </ResponsiveContainer>
           </div>
