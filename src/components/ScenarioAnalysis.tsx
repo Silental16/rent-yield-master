@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProjectData } from '@/pages/Index';
 import { FinancialCalculations } from '@/utils/calculations';
@@ -149,8 +148,6 @@ export const ScenarioAnalysis = ({ data }: ScenarioAnalysisProps) => {
     return null;
   };
 
-  const keyMetrics = calculations.calculateKeyMetrics();
-
   return (
     <div className="space-y-6">
       {/* Сценарии выхода */}
@@ -210,22 +207,6 @@ export const ScenarioAnalysis = ({ data }: ScenarioAnalysisProps) => {
                       {formatPercent(scenario.roi)}
                     </span>
                   </div>
-                  {data.npvEnabled && (
-                    <div className="flex justify-between font-semibold">
-                      <span>NPV:</span>
-                      <span className={keyMetrics.npv >= 0 ? 'text-green-600' : 'text-red-600'}>
-                        {formatCurrency(keyMetrics.npv)}
-                      </span>
-                    </div>
-                  )}
-                  {data.irrEnabled && (
-                    <div className="flex justify-between font-semibold">
-                      <span>IRR:</span>
-                      <span className={keyMetrics.irr >= 0 ? 'text-green-600' : 'text-red-600'}>
-                        {formatPercent(keyMetrics.irr)}
-                      </span>
-                    </div>
-                  )}
                 </div>
               </div>
             ))}

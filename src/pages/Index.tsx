@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -6,6 +5,8 @@ import { ProjectForm } from '@/components/ProjectForm';
 import { Dashboard } from '@/components/Dashboard';
 import { CashFlowTable } from '@/components/CashFlowTable';
 import { ScenarioAnalysis } from '@/components/ScenarioAnalysis';
+import { ProjectManager } from '@/components/ProjectManager';
+import { useProjectStorage } from '@/hooks/useProjectStorage';
 import { Calculator, TrendingUp, BarChart3, PieChart } from 'lucide-react';
 
 export interface ProjectData {
@@ -77,7 +78,7 @@ export interface ProjectData {
 }
 
 const Index = () => {
-  const [projectData, setProjectData] = useState<ProjectData>({
+  const initialProjectData: ProjectData = {
     entryDate: new Date().toISOString().split('T')[0],
     constructionEndDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     area: 50,
@@ -130,7 +131,17 @@ const Index = () => {
         percentage: 50
       }
     }
-  });
+  };
+
+  const {
+    currentProject,
+    savedProjects,
+    activeProjectId,
+    saveCurrentProject,
+    loadProject,
+    deleteProject,
+    updateCurrentProject
+  } = useProjectStorage(initialProjectData);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -143,6 +154,14 @@ const Index = () => {
             Система моделирования и анализа инвестиций в недвижимость с арендным доходом
           </p>
         </div>
+
+        <ProjectManager
+          savedProjects={savedProjects}
+          activeProjectId={activeProjectId}
+          onSaveProject={saveCurrentProject}
+          onLoadProject={loadProject}
+          onDeleteProject={deleteProject}
+        />
 
         <Tabs defaultValue="parameters" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4 bg-white/50 backdrop-blur-sm">
@@ -172,21 +191,21 @@ const Index = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ProjectForm data={projectData} onChange={setProjectData} />
+                <ProjectForm data={currentProject} onChange={updateCurrentProject} />
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="dashboard">
-            <Dashboard data={projectData} />
+            <Dashboard data={currentProject} />
           </TabsContent>
 
           <TabsContent value="cashflow">
-            <CashFlowTable data={projectData} />
+            <CashFlowTable data={currentProject} />
           </TabsContent>
 
           <TabsContent value="scenarios">
-            <ScenarioAnalysis data={projectData} />
+            <ScenarioAnalysis data={currentProject} />
           </TabsContent>
         </Tabs>
       </div>
