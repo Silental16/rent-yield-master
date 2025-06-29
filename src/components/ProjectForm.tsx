@@ -100,6 +100,36 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
     updateData({ profitExpenses: items });
   };
 
+  const handleDownPaymentChange = (value: number) => {
+    const total = value + data.paymentPlan.constructionPayments.percentage;
+    if (total > 100) return;
+
+    updateData({
+      paymentPlan: {
+        ...data.paymentPlan,
+        downPayment: { ...data.paymentPlan.downPayment, value }
+      }
+    });
+  };
+
+  const handleConstructionPaymentChange = (value: number) => {
+    const total = data.paymentPlan.downPayment.value + value;
+    if (total > 100) return;
+
+    updateData({
+      paymentPlan: {
+        ...data.paymentPlan,
+        constructionPayments: {
+          ...data.paymentPlan.constructionPayments,
+          percentage: value
+        }
+      }
+    });
+  };
+
+  const remainingPercentage =
+    100 - data.paymentPlan.downPayment.value - data.paymentPlan.constructionPayments.percentage;
+
   return (
     <Tabs defaultValue="basic" className="space-y-6">
       <TabsList className="grid w-full grid-cols-4">
@@ -635,12 +665,7 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
                       id="down-payment"
                       type="number"
                       value={data.paymentPlan.downPayment.value}
-                      onChange={(e) => updateData({
-                        paymentPlan: {
-                          ...data.paymentPlan,
-                          downPayment: { ...data.paymentPlan.downPayment, value: Number(e.target.value) }
-                        }
-                      })}
+                      onChange={(e) => handleDownPaymentChange(Number(e.target.value))}
                     />
                   </div>
                 </div>
@@ -652,15 +677,7 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
                       id="construction-percentage"
                       type="number"
                       value={data.paymentPlan.constructionPayments.percentage}
-                      onChange={(e) => updateData({
-                        paymentPlan: {
-                          ...data.paymentPlan,
-                          constructionPayments: {
-                            ...data.paymentPlan.constructionPayments,
-                            percentage: Number(e.target.value)
-                          }
-                        }
-                      })}
+                      onChange={(e) => handleConstructionPaymentChange(Number(e.target.value))}
                     />
                   </div>
                   <div>
@@ -725,9 +742,11 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
                     Платежи после окончания строительства
                   </Label>
                   <p className="text-sm text-blue-600 mt-1">
-                    {100 - data.paymentPlan.downPayment.value - data.paymentPlan.constructionPayments.percentage}% 
-                    будет списано в день запуска проекта
+                    {remainingPercentage}% будет списано в день запуска проекта
                   </p>
+                  {remainingPercentage === 0 && (
+                    <p className="text-xs text-red-600 mt-1">Предупреждение: финальный платеж отсутствует</p>
+                  )}
                 </div>
               </div>
             )}

@@ -231,6 +231,7 @@ export class FinancialCalculations {
   // Расчет плана платежей
   calculatePaymentSchedule() {
     const totalInvestment = this.calculateTotalInvestment();
+    const maxPercentage = 100;
     const payments = [];
     
     if (!this.data.paymentPlan.isInstallment) {
@@ -260,7 +261,14 @@ export class FinancialCalculations {
       });
       
       // Платежи во время строительства
-      const constructionPaymentAmount = totalInvestment * (this.data.paymentPlan.constructionPayments.percentage / 100);
+      let constructionPercentage = this.data.paymentPlan.constructionPayments.percentage;
+      if (this.data.paymentPlan.downPayment.type === 'percentage') {
+        constructionPercentage = Math.min(
+          constructionPercentage,
+          Math.max(0, maxPercentage - this.data.paymentPlan.downPayment.value)
+        );
+      }
+      const constructionPaymentAmount = totalInvestment * (constructionPercentage / 100);
       
       const monthsDuringConstruction = Math.max(1, Math.floor((constructionEndDate.getTime() - entryDate.getTime()) / (30 * 24 * 60 * 60 * 1000)));
       
