@@ -84,7 +84,9 @@ This application supports two ways of paying for a unit:
 - `discountType` – `'percentage'` or `'fixed'` determines how the discount is applied.
 - `discountValue` – amount of discount in percent or dollars.
 - `downPayment` – first payment either as a percentage or fixed value.
-- `constructionPayments` – percentage paid during construction. The amount is divided monthly from the entry date until `constructionEndDate`. Fixed payment schedules are not supported.
+
+- `constructionPayments` – percentage paid during construction, split evenly each month until the project launches.
+
 
 ### Prelaunch Installment
 
@@ -100,24 +102,7 @@ paymentPlan: {
   isInstallment: true,
   downPayment: { type: 'percentage', value: 30 },
   constructionPayments: { percentage: 50 }
-}
-```
 
-This schedules 30% at entry, divides 50% over the five months before June 2024 and pays the final 20% on launch day. A 5% discount applies to the total.
-
-### Monthly Installment
-
-With a **monthly** plan you specify `months` to control how many installments follow the down payment. The remaining balance is divided equally and charged each month starting one month after `entryDate`.
-
-```ts
-entryDate: '2024-01-01'
-paymentPlan: {
-  type: 'monthly',
-  months: 8,
-  discountType: 'fixed',
-  discountValue: 1000,
-  isInstallment: true,
-  downPayment: { type: 'percentage', value: 20 }
 }
 ```
 

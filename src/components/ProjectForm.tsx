@@ -746,7 +746,7 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div>
                     <Label htmlFor="construction-percentage">Платежи во время строительства (%)</Label>
                     <Input
@@ -756,62 +756,7 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
                       onChange={(e) => handleConstructionPaymentChange(Number(e.target.value))}
                     />
                   </div>
-                  <div>
-                    <Label>Режим оплаты</Label>
-                    <div className="flex gap-2 mt-2">
-                      <Button
-                        size="sm"
-                        variant={data.paymentPlan.constructionPayments.mode === 'monthly' ? 'default' : 'outline'}
-                        onClick={() => updateData({
-                          paymentPlan: {
-                            ...data.paymentPlan,
-                            constructionPayments: {
-                              ...data.paymentPlan.constructionPayments,
-                              mode: 'monthly'
-                            }
-                          }
-                        })}
-                      >
-                        Помесячно
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant={data.paymentPlan.constructionPayments.mode === 'fixed' ? 'default' : 'outline'}
-                        onClick={() => updateData({
-                          paymentPlan: {
-                            ...data.paymentPlan,
-                            constructionPayments: {
-                              ...data.paymentPlan.constructionPayments,
-                              mode: 'fixed'
-                            }
-                          }
-                        })}
-                      >
-                        Фиксированное
-                      </Button>
-                    </div>
-                  </div>
                 </div>
-
-                {data.paymentPlan.constructionPayments.mode === 'fixed' && (
-                  <div>
-                    <Label htmlFor="payment-count">Количество платежей</Label>
-                    <Input
-                      id="payment-count"
-                      type="number"
-                      value={data.paymentPlan.constructionPayments.count || 12}
-                      onChange={(e) => updateData({
-                        paymentPlan: {
-                          ...data.paymentPlan,
-                          constructionPayments: {
-                            ...data.paymentPlan.constructionPayments,
-                            count: Number(e.target.value)
-                          }
-                        }
-                      })}
-                    />
-                  </div>
-                )}
                 
                 <div className="p-3 bg-blue-50 rounded-lg">
                   <Label className="text-sm font-medium text-blue-700">
