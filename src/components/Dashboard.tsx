@@ -219,11 +219,17 @@ export const Dashboard = ({ data }: DashboardProps) => {
                 {data.revenueExpenses.map((expense, expenseIndex) => (
                   <tr key={expenseIndex} className="border-b border-gray-50">
                     <td className="p-3 pl-12 text-sm text-gray-600">- {expense.name}</td>
-                    {rentalTable.map((year, yearIndex) => (
-                      <td key={yearIndex} className="text-center p-3 text-sm text-gray-500">
-                        -{formatCurrency(year.grossIncome * expense.percentage / 100)}
-                      </td>
-                    ))}
+                    {rentalTable.map((year, yearIndex) => {
+                      const breakdown = year.revenueExpensesBreakdown?.find(
+                        (b) => b.name === expense.name
+                      );
+                      const amount = breakdown?.amount || 0;
+                      return (
+                        <td key={yearIndex} className="text-center p-3 text-sm text-gray-500">
+                          {amount > 0 ? `-${formatCurrency(amount)}` : '-'}
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))}
                 <tr className="border-b border-gray-100">
