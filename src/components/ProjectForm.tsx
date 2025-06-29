@@ -546,6 +546,32 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
             <CardTitle>План оплаты</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
+            <div>
+              <Label>Режим оплаты</Label>
+              <div className="flex gap-2 mt-2">
+                <Button
+                  size="sm"
+                  variant={data.paymentPlan.type === 'full' ? 'default' : 'outline'}
+                  onClick={() => updateData({ paymentPlan: { ...data.paymentPlan, type: 'full' } })}
+                >
+                  Полная
+                </Button>
+                <Button
+                  size="sm"
+                  variant={data.paymentPlan.type === 'prelaunch' ? 'default' : 'outline'}
+                  onClick={() => updateData({ paymentPlan: { ...data.paymentPlan, type: 'prelaunch' } })}
+                >
+                  До запуска
+                </Button>
+                <Button
+                  size="sm"
+                  variant={data.paymentPlan.type === 'monthly' ? 'default' : 'outline'}
+                  onClick={() => updateData({ paymentPlan: { ...data.paymentPlan, type: 'monthly' } })}
+                >
+                  Помесячно
+                </Button>
+              </div>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Тип скидки</Label>
