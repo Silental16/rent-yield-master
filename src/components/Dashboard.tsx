@@ -170,6 +170,26 @@ export const Dashboard = ({ data }: DashboardProps) => {
                   ))}
                 </tr>
 
+                {/* Выручка от прямых бронирований */}
+                <tr className="border-b border-gray-50">
+                  <td className="p-3 pl-8 text-sm text-gray-600">- Выручка от прямых бронирований ({data.directBookings}%)</td>
+                  {rentalIncome.map((year) => (
+                    <td key={`direct-${year.year}`} className="text-center p-3 text-xs text-green-600">
+                      {formatCurrency(year.directBookingsRevenue)}
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Выручка от AirBnB/Booking */}
+                <tr className="border-b border-gray-50">
+                  <td className="p-3 pl-8 text-sm text-gray-600">- Выручка от AirBnB/Booking ({data.otaBookings}%)</td>
+                  {rentalIncome.map((year) => (
+                    <td key={`ota-${year.year}`} className="text-center p-3 text-xs text-orange-600">
+                      {formatCurrency(year.otaBookingsRevenue)}
+                    </td>
+                  ))}
+                </tr>
+
                 {/* Расходы из выручки - общая строка */}
                 <tr className="border-b border-gray-100">
                   <td className="p-3 font-semibold text-red-700 bg-red-50">- Расходы из выручки</td>
@@ -183,7 +203,10 @@ export const Dashboard = ({ data }: DashboardProps) => {
                 {/* Детализация расходов из выручки */}
                 {data.revenueExpenses.map((expense, expenseIndex) => (
                   <tr key={`rev-exp-detail-${expenseIndex}`} className="border-b border-gray-50">
-                    <td className="p-3 pl-8 text-sm text-gray-600">- {expense.name}</td>
+                    <td className="p-3 pl-8 text-sm text-gray-600">
+                      - {expense.name}
+                      {expense.name === 'Комиссия OTA' ? ` (${expense.percentage}% от AirBnB/Booking)` : ` (${expense.percentage}%)`}
+                    </td>
                     {rentalIncome.map((year) => {
                       const breakdown = year.revenueExpensesBreakdown?.find(b => b.name === expense.name);
                       const amount = breakdown?.amount || 0;

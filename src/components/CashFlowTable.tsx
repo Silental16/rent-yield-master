@@ -94,6 +94,30 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
                 )}
               </tr>
 
+              {/* Выручка от прямых бронирований */}
+              <tr className="border-b border-gray-50">
+                <td className="p-3 pl-8 text-sm text-gray-600 sticky left-0 z-10 bg-white border-r-2 border-gray-200">- Прямые бронирования ({data.directBookings}%)</td>
+                {yearlyData.map((year) => 
+                  year.months.map((month, monthIndex) => (
+                    <td key={`direct-${year.year}-${monthIndex}`} className="text-center p-2 text-xs text-green-500">
+                      {month.data.directBookingsRevenue > 0 ? formatCurrency(month.data.directBookingsRevenue) : '-'}
+                    </td>
+                  ))
+                )}
+              </tr>
+
+              {/* Выручка от AirBnB/Booking */}
+              <tr className="border-b border-gray-50">
+                <td className="p-3 pl-8 text-sm text-gray-600 sticky left-0 z-10 bg-white border-r-2 border-gray-200">- AirBnB/Booking ({data.otaBookings}%)</td>
+                {yearlyData.map((year) => 
+                  year.months.map((month, monthIndex) => (
+                    <td key={`ota-${year.year}-${monthIndex}`} className="text-center p-2 text-xs text-orange-500">
+                      {month.data.otaBookingsRevenue > 0 ? formatCurrency(month.data.otaBookingsRevenue) : '-'}
+                    </td>
+                  ))
+                )}
+              </tr>
+
               {/* 3. Расходы на выручку - общая строка */}
               <tr className="border-b border-gray-100">
                 <td className="p-3 font-semibold text-red-700 bg-red-50 sticky left-0 z-10 border-r-2 border-gray-200">Расходы на выручку</td>
@@ -109,7 +133,10 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
               {/* Детализация расходов на выручку */}
               {data.revenueExpenses.map((expense, expenseIndex) => (
                 <tr key={`rev-exp-detail-${expenseIndex}`} className="border-b border-gray-50">
-                  <td className="p-3 pl-8 text-sm text-gray-600 sticky left-0 z-10 bg-white border-r-2 border-gray-200">- {expense.name}</td>
+                  <td className="p-3 pl-8 text-sm text-gray-600 sticky left-0 z-10 bg-white border-r-2 border-gray-200">
+                    - {expense.name}
+                    {expense.name === 'Комиссия OTA' ? ` (${expense.percentage}%)` : ` (${expense.percentage}%)`}
+                  </td>
                   {yearlyData.map((year) => 
                     year.months.map((month, monthIndex) => {
                       const breakdown = month.data.revenueExpensesBreakdown?.find(b => b.name === expense.name);

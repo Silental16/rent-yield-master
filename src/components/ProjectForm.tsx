@@ -252,22 +252,30 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
         </CardHeader>
         <CardContent className="grid gap-6">
           <div>
-            <Label htmlFor="directBookings">Прямые бронирования (%)</Label>
-            <Input
-              type="number"
-              id="directBookings"
-              value={data.directBookings}
-              onChange={(e) => onChange({ ...data, directBookings: parseFloat(e.target.value) })}
-            />
-          </div>
-          <div>
-            <Label htmlFor="otaBookings">OTA бронирования (%)</Label>
-            <Input
-              type="number"
-              id="otaBookings"
-              value={data.otaBookings}
-              onChange={(e) => onChange({ ...data, otaBookings: parseFloat(e.target.value) })}
-            />
+            <Label>Распределение выручки между каналами</Label>
+            <div className="mt-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Прямые бронирования</span>
+                <span className="text-sm font-medium">{data.directBookings}%</span>
+              </div>
+              <Slider
+                value={[data.directBookings]}
+                onValueChange={(value) => {
+                  onChange({
+                    ...data,
+                    directBookings: value[0],
+                    otaBookings: 100 - value[0],
+                  });
+                }}
+                max={100}
+                step={1}
+                className="w-full"
+              />
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">AirBnB/Booking</span>
+                <span className="text-sm font-medium">{data.otaBookings}%</span>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -481,6 +489,7 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
             title="Расходы из выручки"
             itemNamePlaceholder="Название расхода"
             addButtonText="Добавить расход"
+            protectedItems={['Комиссия УК с выручки', 'Комиссия OTA']}
           />
         </CardContent>
       </Card>
