@@ -6,6 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import { Slider } from '@/components/ui/slider';
 import { PlusCircle } from 'lucide-react';
 import { DragDropContext, Droppable } from 'react-beautiful-dnd';
 import { DraggableListItem } from './DraggableListItem';
@@ -253,24 +254,25 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
           <CardHeader>
             <CardTitle>Каналы продаж</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
+          <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="direct-bookings">Прямые брони (%)</Label>
-              <Input
-                id="direct-bookings"
-                type="number"
-                value={data.directBookings}
-                onChange={(e) => updateData({ directBookings: Number(e.target.value) })}
-              />
-            </div>
-            <div>
-              <Label htmlFor="ota-bookings">AirBnB/Booking (%)</Label>
-              <Input
-                id="ota-bookings"
-                type="number"
-                value={data.otaBookings}
-                onChange={(e) => updateData({ otaBookings: Number(e.target.value) })}
-              />
+              <Label>Распределение источников выручки</Label>
+              <div className="mt-4 space-y-4">
+                <Slider
+                  value={[data.directBookings]}
+                  onValueChange={(value) => updateData({ 
+                    directBookings: value[0],
+                    otaBookings: 100 - value[0]
+                  })}
+                  max={100}
+                  step={1}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>Прямые брони: {data.directBookings}%</span>
+                  <span>AirBnB/Booking: {data.otaBookings}%</span>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -717,6 +719,16 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
                     />
                   </div>
                 )}
+                
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <Label className="text-sm font-medium text-blue-700">
+                    Платежи после окончания строительства
+                  </Label>
+                  <p className="text-sm text-blue-600 mt-1">
+                    {100 - data.paymentPlan.downPayment.value - data.paymentPlan.constructionPayments.percentage}% 
+                    будет списано в день запуска проекта
+                  </p>
+                </div>
               </div>
             )}
           </CardContent>

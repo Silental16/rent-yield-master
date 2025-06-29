@@ -36,6 +36,28 @@ export class FinancialCalculations {
     return grossIncome;
   }
 
+  // Расчет расходов из выручки с учетом каналов продаж
+  calculateRevenueExpenses(grossIncome: number): { total: number; breakdown: Array<{ name: string; amount: number }> } {
+    const breakdown = [];
+    let total = 0;
+
+    for (const expense of this.data.revenueExpenses) {
+      let amount = 0;
+      
+      // Комиссия OTA начисляется только на выручку от OTA каналов
+      if (expense.name.toLowerCase().includes('ota') || expense.name.toLowerCase().includes('комиссия ota')) {
+        amount = grossIncome * (this.data.otaBookings / 100) * (expense.percentage / 100);
+      } else {
+        amount = grossIncome * (expense.percentage / 100);
+      }
+      
+      breakdown.push({ name: expense.name, amount });
+      total += amount;
+    }
+
+    return { total, breakdown };
+  }
+
   // Расчет таблицы доходности по годам
   calculateRentalIncome() {
     const results = [];
@@ -49,10 +71,9 @@ export class FinancialCalculations {
         grossIncome += this.calculateMonthlyRentalIncome(monthsFromStart);
       }
       
-      // Расчет расходов из выручки
-      const revenueExpensesTotal = this.data.revenueExpenses.reduce((sum, expense) => 
-        sum + (grossIncome * expense.percentage / 100), 0
-      );
+      // Расчет расходов из выручки с учетом каналов продаж
+      const revenueExpensesData = this.calculateRevenueExpenses(grossIncome);
+      const revenueExpensesTotal = revenueExpensesData.total;
       
       const operatingProfit = grossIncome - revenueExpensesTotal;
       
@@ -305,33 +326,46 @@ export class FinancialCalculations {
       // Доход от аренды
       const rentalIncome = this.calculateMonthlyRentalIncome(month);
       
-      // Операционные расходы
-      let operatingExpenses = 0;
-      if (rentalIncome > 0) { // Расходы только когда есть доход
-        if (this.data.monthlyExpenses.enabled) {
-          operatingExpenses += this.data.monthlyExpenses.value;
-        }
-        if (this.data.annualRepair.enabled && month % 12 === 0) {
-          operatingExpenses += this.data.annualRepair.value;
-        }
-        if (this.data.insurance.enabled && month % 12 === 0) {
-          operatingExpenses += this.data.insurance.value;
-        }
-        
-        // Расходы из выручки и прибыли
-        const revenueExpenses = this.data.revenueExpenses.reduce((sum, expense) => 
-          sum + (rentalIncome * expense.percentage / 100), 0
-        );
-        
-        const operatingProfit = rentalIncome - revenueExpenses;
-        const profitExpenses = this.data.profitExpenses.reduce((sum, expense) => 
-          sum + (operatingProfit * expense.percentage / 100), 0
-        );
-        
-        operatingExpenses += revenueExpenses + profitExpenses;
+      // Расходы из выручки с детализацией
+      const revenueExpensesData = this.calculateRevenueExpenses(rentalIncome);
+      
+      // Операционная прибыль
+      const operatingProfit = rentalIncome - revenueExpensesData.total;
+      
+      // Расходы из прибыли
+      const profitExpensesBreakdown = [];
+      let totalProfitExpenses = 0;
+      
+      for (const expense of this.data.profitExpenses) {
+        const amount = operatingProfit * (expense.percentage / 100);
+        profitExpensesBreakdown.push({ name: expense.name, amount });
+        totalProfitExpenses += amount;
       }
       
-      const netCashFlow = investorPayment + rentalIncome - operatingExpenses;
+      // Операционные расходы
+      const operationalExpensesBreakdown = [];
+      let totalOperationalExpenses = 0;
+      
+      if (rentalIncome > 0) { // Расходы только когда есть доход
+        if (this.data.monthlyExpenses.enabled) {
+          const amount = this.data.monthlyExpenses.value;
+          operationalExpensesBreakdown.push({ name: 'Месячные расходы', amount });
+          totalOperationalExpenses += amount;
+        }
+        if (this.data.annualRepair.enabled && month % 12 === 0) {
+          const amount = this.data.annualRepair.value;
+          operationalExpensesBreakdown.push({ name: 'Годовой ремонт', amount });
+          totalOperationalExpenses += amount;
+        }
+        if (this.data.insurance.enabled && month % 12 === 0) {
+          const amount = this.data.insurance.value;
+          operationalExpensesBreakdown.push({ name: 'Страховка', amount });
+          totalOperationalExpenses += amount;
+        }
+      }
+      
+      const netProfit = operatingProfit - totalProfitExpenses - totalOperationalExpenses;
+      const netCashFlow = investorPayment + netProfit;
       const cumulativeCashFlow = cashFlow.length > 0 ? 
         cashFlow[cashFlow.length - 1].cumulativeCashFlow + netCashFlow : netCashFlow;
       
@@ -339,9 +373,18 @@ export class FinancialCalculations {
         date: dateStr,
         investorPayment,
         rentalIncome,
-        operatingExpenses,
+        revenueExpensesTotal: revenueExpensesData.total,
+        revenueExpensesBreakdown: revenueExpensesData.breakdown,
+        operatingProfit,
+        profitExpensesTotal: totalProfitExpenses,
+        profitExpensesBreakdown,
+        operationalExpensesTotal: totalOperationalExpenses,
+        operationalExpensesBreakdown,
+        netProfit,
         netCashFlow,
-        cumulativeCashFlow
+        cumulativeCashFlow,
+        // Keep legacy fields for compatibility
+        operatingExpenses: revenueExpensesData.total + totalProfitExpenses + totalOperationalExpenses
       });
     }
     

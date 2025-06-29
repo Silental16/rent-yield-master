@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProjectData } from '@/pages/Index';
 import { FinancialCalculations } from '@/utils/calculations';
@@ -17,14 +18,6 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(value);
-  };
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('ru-RU', { 
-      year: 'numeric', 
-      month: 'short' 
-    });
   };
 
   // Группируем cash flow по годам
@@ -78,7 +71,7 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
               </tr>
             </thead>
             <tbody>
-              {/* Платежи инвестора */}
+              {/* 1. Платежи инвестора */}
               <tr className="border-b border-gray-100">
                 <td className="p-3 font-semibold text-red-700 bg-red-50 sticky left-0 z-10 border-r-2 border-gray-200">Платежи инвестора</td>
                 {yearlyData.map((year) => 
@@ -90,9 +83,9 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
                 )}
               </tr>
 
-              {/* Доход от аренды */}
+              {/* 2. Выручка от аренды */}
               <tr className="border-b border-gray-100">
-                <td className="p-3 font-semibold text-green-700 bg-green-50 sticky left-0 z-10 border-r-2 border-gray-200">Доход от аренды</td>
+                <td className="p-3 font-semibold text-green-700 bg-green-50 sticky left-0 z-10 border-r-2 border-gray-200">Выручка от аренды</td>
                 {yearlyData.map((year) => 
                   year.months.map((month, monthIndex) => (
                     <td key={`rent-${year.year}-${monthIndex}`} className="text-center p-2 text-green-600">
@@ -102,28 +95,29 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
                 )}
               </tr>
 
-              {/* Операционные расходы - общая строка */}
+              {/* 3. Расходы на выручку - общая строка */}
               <tr className="border-b border-gray-100">
-                <td className="p-3 font-semibold text-red-700 bg-red-50 sticky left-0 z-10 border-r-2 border-gray-200">Операционные расходы</td>
+                <td className="p-3 font-semibold text-red-700 bg-red-50 sticky left-0 z-10 border-r-2 border-gray-200">Расходы на выручку</td>
                 {yearlyData.map((year) => 
                   year.months.map((month, monthIndex) => (
-                    <td key={`op-${year.year}-${monthIndex}`} className="text-center p-2 text-red-600">
-                      {month.data.operatingExpenses > 0 ? `-${formatCurrency(month.data.operatingExpenses)}` : '-'}
+                    <td key={`rev-exp-${year.year}-${monthIndex}`} className="text-center p-2 text-red-600">
+                      {month.data.revenueExpensesTotal > 0 ? `-${formatCurrency(month.data.revenueExpensesTotal)}` : '-'}
                     </td>
                   ))
                 )}
               </tr>
 
-              {/* Детализация расходов из выручки */}
+              {/* Детализация расходов на выручку */}
               {data.revenueExpenses.map((expense, expenseIndex) => (
-                <tr key={`rev-exp-${expenseIndex}`} className="border-b border-gray-50">
-                  <td className="p-3 pl-8 text-sm text-gray-600 sticky left-0 z-10 bg-white border-r-2 border-gray-200">- {expense.name} ({expense.percentage}%)</td>
+                <tr key={`rev-exp-detail-${expenseIndex}`} className="border-b border-gray-50">
+                  <td className="p-3 pl-8 text-sm text-gray-600 sticky left-0 z-10 bg-white border-r-2 border-gray-200">- {expense.name}</td>
                   {yearlyData.map((year) => 
                     year.months.map((month, monthIndex) => {
-                      const expenseAmount = month.data.rentalIncome * expense.percentage / 100;
+                      const breakdown = month.data.revenueExpensesBreakdown?.find(b => b.name === expense.name);
+                      const amount = breakdown?.amount || 0;
                       return (
-                        <td key={`rev-exp-${expenseIndex}-${year.year}-${monthIndex}`} className="text-center p-2 text-xs text-gray-500">
-                          {expenseAmount > 0 ? `-${formatCurrency(expenseAmount)}` : '-'}
+                        <td key={`rev-exp-detail-${expenseIndex}-${year.year}-${monthIndex}`} className="text-center p-2 text-xs text-gray-500">
+                          {amount > 0 ? `-${formatCurrency(amount)}` : '-'}
                         </td>
                       );
                     })
@@ -131,20 +125,41 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
                 </tr>
               ))}
 
-              {/* Детализация расходов из прибыли */}
+              {/* 4. Прибыль */}
+              <tr className="border-b border-gray-100">
+                <td className="p-3 font-semibold text-blue-700 bg-blue-50 sticky left-0 z-10 border-r-2 border-gray-200">Прибыль</td>
+                {yearlyData.map((year) => 
+                  year.months.map((month, monthIndex) => (
+                    <td key={`profit-${year.year}-${monthIndex}`} className={`text-center p-2 font-semibold ${month.data.operatingProfit >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                      {month.data.operatingProfit !== 0 ? formatCurrency(month.data.operatingProfit) : '-'}
+                    </td>
+                  ))
+                )}
+              </tr>
+
+              {/* 5. Расходы на прибыль - общая строка */}
+              <tr className="border-b border-gray-100">
+                <td className="p-3 font-semibold text-red-700 bg-red-50 sticky left-0 z-10 border-r-2 border-gray-200">Расходы на прибыль</td>
+                {yearlyData.map((year) => 
+                  year.months.map((month, monthIndex) => (
+                    <td key={`prof-exp-${year.year}-${monthIndex}`} className="text-center p-2 text-red-600">
+                      {month.data.profitExpensesTotal > 0 ? `-${formatCurrency(month.data.profitExpensesTotal)}` : '-'}
+                    </td>
+                  ))
+                )}
+              </tr>
+
+              {/* Детализация расходов на прибыль */}
               {data.profitExpenses.map((expense, expenseIndex) => (
-                <tr key={`prof-exp-${expenseIndex}`} className="border-b border-gray-50">
-                  <td className="p-3 pl-8 text-sm text-gray-600 sticky left-0 z-10 bg-white border-r-2 border-gray-200">- {expense.name} ({expense.percentage}%)</td>
+                <tr key={`prof-exp-detail-${expenseIndex}`} className="border-b border-gray-50">
+                  <td className="p-3 pl-8 text-sm text-gray-600 sticky left-0 z-10 bg-white border-r-2 border-gray-200">- {expense.name}</td>
                   {yearlyData.map((year) => 
                     year.months.map((month, monthIndex) => {
-                      const revenueExpenses = data.revenueExpenses.reduce((sum, revExp) => 
-                        sum + (month.data.rentalIncome * revExp.percentage / 100), 0
-                      );
-                      const operatingProfit = month.data.rentalIncome - revenueExpenses;
-                      const expenseAmount = operatingProfit * expense.percentage / 100;
+                      const breakdown = month.data.profitExpensesBreakdown?.find(b => b.name === expense.name);
+                      const amount = breakdown?.amount || 0;
                       return (
-                        <td key={`prof-exp-${expenseIndex}-${year.year}-${monthIndex}`} className="text-center p-2 text-xs text-gray-500">
-                          {expenseAmount > 0 ? `-${formatCurrency(expenseAmount)}` : '-'}
+                        <td key={`prof-exp-detail-${expenseIndex}-${year.year}-${monthIndex}`} className="text-center p-2 text-xs text-gray-500">
+                          {amount > 0 ? `-${formatCurrency(amount)}` : '-'}
                         </td>
                       );
                     })
@@ -152,29 +167,51 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
                 </tr>
               ))}
 
-              {/* Операционные расходы - детализация */}
-              {data.monthlyExpenses.enabled && (
-                <tr className="border-b border-gray-50">
-                  <td className="p-3 pl-8 text-sm text-gray-600 sticky left-0 z-10 bg-white border-r-2 border-gray-200">- Месячные расходы</td>
+              {/* Операционные расходы */}
+              {(data.monthlyExpenses.enabled || data.annualRepair.enabled || data.insurance.enabled) && (
+                <tr className="border-b border-gray-100">
+                  <td className="p-3 font-semibold text-red-700 bg-red-50 sticky left-0 z-10 border-r-2 border-gray-200">Операционные расходы</td>
                   {yearlyData.map((year) => 
                     year.months.map((month, monthIndex) => (
-                      <td key={`monthly-${year.year}-${monthIndex}`} className="text-center p-2 text-xs text-gray-500">
-                        {month.data.rentalIncome > 0 ? `-${formatCurrency(data.monthlyExpenses.value)}` : '-'}
+                      <td key={`op-exp-${year.year}-${monthIndex}`} className="text-center p-2 text-red-600">
+                        {month.data.operationalExpensesTotal > 0 ? `-${formatCurrency(month.data.operationalExpensesTotal)}` : '-'}
                       </td>
                     ))
                   )}
                 </tr>
               )}
 
+              {/* Детализация операционных расходов */}
+              {data.monthlyExpenses.enabled && (
+                <tr className="border-b border-gray-50">
+                  <td className="p-3 pl-8 text-sm text-gray-600 sticky left-0 z-10 bg-white border-r-2 border-gray-200">- Месячные расходы</td>
+                  {yearlyData.map((year) => 
+                    year.months.map((month, monthIndex) => {
+                      const breakdown = month.data.operationalExpensesBreakdown?.find(b => b.name === 'Месячные расходы');
+                      const amount = breakdown?.amount || 0;
+                      return (
+                        <td key={`monthly-${year.year}-${monthIndex}`} className="text-center p-2 text-xs text-gray-500">
+                          {amount > 0 ? `-${formatCurrency(amount)}` : '-'}
+                        </td>
+                      );
+                    })
+                  )}
+                </tr>
+              )}
+
               {data.annualRepair.enabled && (
                 <tr className="border-b border-gray-50">
-                  <td className="p-3 pl-8 text-sm text-gray-600 sticky left-0 z-10 bg-white border-r-2 border-gray-200">- Годовые ремонт</td>
+                  <td className="p-3 pl-8 text-sm text-gray-600 sticky left-0 z-10 bg-white border-r-2 border-gray-200">- Годовой ремонт</td>
                   {yearlyData.map((year) => 
-                    year.months.map((month, monthIndex) => (
-                      <td key={`repair-${year.year}-${monthIndex}`} className="text-center p-2 text-xs text-gray-500">
-                        {month.data.rentalIncome > 0 && monthIndex === 0 ? `-${formatCurrency(data.annualRepair.value)}` : '-'}
-                      </td>
-                    ))
+                    year.months.map((month, monthIndex) => {
+                      const breakdown = month.data.operationalExpensesBreakdown?.find(b => b.name === 'Годовой ремонт');
+                      const amount = breakdown?.amount || 0;
+                      return (
+                        <td key={`repair-${year.year}-${monthIndex}`} className="text-center p-2 text-xs text-gray-500">
+                          {amount > 0 ? `-${formatCurrency(amount)}` : '-'}
+                        </td>
+                      );
+                    })
                   )}
                 </tr>
               )}
@@ -183,30 +220,34 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
                 <tr className="border-b border-gray-50">
                   <td className="p-3 pl-8 text-sm text-gray-600 sticky left-0 z-10 bg-white border-r-2 border-gray-200">- Страховка</td>
                   {yearlyData.map((year) => 
-                    year.months.map((month, monthIndex) => (
-                      <td key={`insurance-${year.year}-${monthIndex}`} className="text-center p-2 text-xs text-gray-500">
-                        {month.data.rentalIncome > 0 && monthIndex === 0 ? `-${formatCurrency(data.insurance.value)}` : '-'}
-                      </td>
-                    ))
+                    year.months.map((month, monthIndex) => {
+                      const breakdown = month.data.operationalExpensesBreakdown?.find(b => b.name === 'Страховка');
+                      const amount = breakdown?.amount || 0;
+                      return (
+                        <td key={`insurance-${year.year}-${monthIndex}`} className="text-center p-2 text-xs text-gray-500">
+                          {amount > 0 ? `-${formatCurrency(amount)}` : '-'}
+                        </td>
+                      );
+                    })
                   )}
                 </tr>
               )}
 
-              {/* Чистый денежный поток */}
+              {/* 6. Чистая прибыль (чистый денежный поток) */}
               <tr className="border-b-2 border-gray-200 bg-purple-50">
-                <td className="p-3 font-bold text-purple-700 sticky left-0 z-10 border-r-2 border-gray-200 bg-purple-50">Чистый денежный поток</td>
+                <td className="p-3 font-bold text-purple-700 sticky left-0 z-10 border-r-2 border-gray-200 bg-purple-50">Чистая прибыль (чистый CF)</td>
                 {yearlyData.map((year) => 
                   year.months.map((month, monthIndex) => (
-                    <td key={`net-${year.year}-${monthIndex}`} className={`text-center p-2 font-semibold ${month.data.netCashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {formatCurrency(month.data.netCashFlow)}
+                    <td key={`net-profit-${year.year}-${monthIndex}`} className={`text-center p-2 font-semibold ${month.data.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatCurrency(month.data.netProfit)}
                     </td>
                   ))
                 )}
               </tr>
 
-              {/* Накопленный денежный поток */}
+              {/* 7. Чистый накопленный CF */}
               <tr className="border-b-2 border-gray-200 bg-indigo-50">
-                <td className="p-3 font-bold text-indigo-700 sticky left-0 z-10 border-r-2 border-gray-200 bg-indigo-50">Накопленный CF</td>
+                <td className="p-3 font-bold text-indigo-700 sticky left-0 z-10 border-r-2 border-gray-200 bg-indigo-50">Чистый накопленный CF</td>
                 {yearlyData.map((year) => 
                   year.months.map((month, monthIndex) => (
                     <td key={`cum-${year.year}-${monthIndex}`} className={`text-center p-2 font-semibold ${month.data.cumulativeCashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
