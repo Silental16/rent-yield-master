@@ -168,7 +168,7 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
             itemNamePlaceholder="Название этапа (например: Повышение цены)"
             addButtonText="Добавить этап"
             percentageLabel="Цена ($)"
-            protectedItems={['Базовая цена']}
+            protectedItems={[]}
             fixedFirstItem={{
               name: 'Базовая цена',
               canEditName: false,

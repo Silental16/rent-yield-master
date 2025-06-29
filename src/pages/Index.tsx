@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { ProjectForm } from '@/components/ProjectForm';
 import { Dashboard } from '@/components/Dashboard';
 import { ScenarioAnalysis } from '@/components/ScenarioAnalysis';
@@ -63,15 +63,18 @@ const Index = () => {
   const { projects, currentProject, setCurrentProject, saveProject, deleteProject, defaultProjectData } = useProjectStorage();
   const [selectedPaymentPlan, setSelectedPaymentPlan] = useState<PaymentPlan | undefined>();
 
-  const [projectData, setProjectData] = useState<ProjectData>(defaultProjectData);
+  // Используем useMemo для стабилизации defaultProjectData
+  const stableDefaultData = useMemo(() => defaultProjectData, []);
+
+  const [projectData, setProjectData] = useState<ProjectData>(stableDefaultData);
 
   useEffect(() => {
     if (currentProject) {
       setProjectData(currentProject.data);
     } else {
-      setProjectData(defaultProjectData);
+      setProjectData(stableDefaultData);
     }
-  }, [currentProject, defaultProjectData]);
+  }, [currentProject, stableDefaultData]);
 
   const handleDataChange = (newData: ProjectData) => {
     setProjectData(newData);
