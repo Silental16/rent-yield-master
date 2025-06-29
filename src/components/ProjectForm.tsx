@@ -589,7 +589,15 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
                 <Button
                   size="sm"
                   variant={data.paymentPlan.type === 'monthly' ? 'default' : 'outline'}
-                  onClick={() => updateData({ paymentPlan: { ...data.paymentPlan, type: 'monthly' } })}
+                  onClick={() =>
+                    updateData({
+                      paymentPlan: {
+                        ...data.paymentPlan,
+                        type: 'monthly',
+                        months: data.paymentPlan.months ?? 12
+                      }
+                    })
+                  }
                 >
                   Помесячно
                 </Button>
@@ -662,9 +670,15 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
                       <Button
                         size="sm"
                         variant={data.paymentPlan.type === 'monthly' ? 'default' : 'outline'}
-                        onClick={() => updateData({
-                          paymentPlan: { ...data.paymentPlan, type: 'monthly' }
-                        })}
+                        onClick={() =>
+                          updateData({
+                            paymentPlan: {
+                              ...data.paymentPlan,
+                              type: 'monthly',
+                              months: data.paymentPlan.months ?? 12
+                            }
+                          })
+                        }
                       >
                         Помесячно
                       </Button>
@@ -676,10 +690,15 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
                       <Input
                         id="plan-months"
                         type="number"
-                        value={data.paymentPlan.months}
-                        onChange={(e) => updateData({
-                          paymentPlan: { ...data.paymentPlan, months: Number(e.target.value) }
-                        })}
+                        value={data.paymentPlan.months ?? 12}
+                        onChange={(e) =>
+                          updateData({
+                            paymentPlan: {
+                              ...data.paymentPlan,
+                              months: Number(e.target.value)
+                            }
+                          })
+                        }
                       />
                     </div>
                   )}

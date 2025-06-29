@@ -65,6 +65,7 @@ export interface ProjectData {
   paymentPlan: {
 
     type: 'full' | 'prelaunch' | 'monthly';
+    months?: number;
     discountType: 'percentage' | 'fixed';
     discountValue: number;
     isInstallment: boolean;
@@ -121,6 +122,7 @@ const Index = () => {
     paymentPlan: {
 
       type: 'prelaunch',
+      months: 12,
 
       discountType: 'percentage',
       discountValue: 5,
