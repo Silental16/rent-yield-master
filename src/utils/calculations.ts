@@ -4,18 +4,71 @@ import { PaymentPlan } from '@/types/paymentPlan';
 export class FinancialCalculations {
   constructor(private data: ProjectData, private paymentPlan?: PaymentPlan) {}
 
+  // Новый метод для расчета цены юнита на момент входа инвестора
+  getUnitPriceAtEntry(): number {
+    const entryDate = new Date(this.data.entryDate);
+    const pricingStages = this.data.pricingStages;
+    
+    // Сортируем этапы по дате
+    const sortedStages = [...pricingStages].sort((a, b) => 
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+    
+    let currentPrice = this.data.cost; // Fallback to original cost
+    
+    // Находим актуальную цену на дату входа
+    for (const stage of sortedStages) {
+      const stageDate = new Date(stage.date);
+      if (stageDate <= entryDate && stage.price) {
+        currentPrice = stage.price;
+      }
+    }
+    
+    return currentPrice;
+  }
+
+  // Новый метод для получения данных графика роста цены юнита
+  getUnitPriceGrowthData(): Array<{month: number; year: number; price: number; monthName: string}> {
+    const entryDate = new Date(this.data.entryDate);
+    const startingPrice = this.getUnitPriceAtEntry();
+    const monthlyGrowthRate = this.data.propertyGrowth / 100 / 12; // Convert annual to monthly rate
+    
+    const data = [];
+    
+    for (let year = 0; year < 10; year++) {
+      for (let month = 0; month < 12; month++) {
+        const monthIndex = year * 12 + month;
+        const currentDate = new Date(entryDate);
+        currentDate.setFullYear(currentDate.getFullYear() + year);
+        currentDate.setMonth(currentDate.getMonth() + month);
+        
+        // Calculate compound growth
+        const price = startingPrice * Math.pow(1 + monthlyGrowthRate, monthIndex);
+        
+        data.push({
+          month: monthIndex + 1,
+          year: year + 1,
+          price: Math.round(price),
+          monthName: currentDate.toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' })
+        });
+      }
+    }
+    
+    return data;
+  }
+
   calculateRentalIncome() {
     const results = [];
     const entryDate = new Date(this.data.entryDate);
     const constructionEndDate = new Date(this.data.constructionEndDate);
     
-    // Calculate initial cost based on payment plan discount
-    let initialCost = this.data.cost;
+    // Calculate initial cost based on entry date and payment plan discount
+    let initialCost = this.getUnitPriceAtEntry();
     if (this.paymentPlan && this.paymentPlan.discount.value > 0) {
       if (this.paymentPlan.discount.type === 'percentage') {
-        initialCost = this.data.cost * (1 - this.paymentPlan.discount.value / 100);
+        initialCost = initialCost * (1 - this.paymentPlan.discount.value / 100);
       } else {
-        initialCost = this.data.cost - this.paymentPlan.discount.value;
+        initialCost = initialCost - this.paymentPlan.discount.value;
       }
     }
 
@@ -117,13 +170,13 @@ export class FinancialCalculations {
     const entryDate = new Date(this.data.entryDate);
     const constructionEndDate = new Date(this.data.constructionEndDate);
     
-    // Calculate initial cost based on payment plan discount
-    let initialCost = this.data.cost;
+    // Calculate initial cost based on entry date and payment plan discount
+    let initialCost = this.getUnitPriceAtEntry();
     if (this.paymentPlan && this.paymentPlan.discount.value > 0) {
       if (this.paymentPlan.discount.type === 'percentage') {
-        initialCost = this.data.cost * (1 - this.paymentPlan.discount.value / 100);
+        initialCost = initialCost * (1 - this.paymentPlan.discount.value / 100);
       } else {
-        initialCost = this.data.cost - this.paymentPlan.discount.value;
+        initialCost = initialCost - this.paymentPlan.discount.value;
       }
     }
 
@@ -259,12 +312,12 @@ export class FinancialCalculations {
   }
 
   getPropertyValueAtYear(year: number): number {
-    let initialCost = this.data.cost;
+    let initialCost = this.getUnitPriceAtEntry();
     if (this.paymentPlan && this.paymentPlan.discount.value > 0) {
       if (this.paymentPlan.discount.type === 'percentage') {
-        initialCost = this.data.cost * (1 - this.paymentPlan.discount.value / 100);
+        initialCost = initialCost * (1 - this.paymentPlan.discount.value / 100);
       } else {
-        initialCost = this.data.cost - this.paymentPlan.discount.value;
+        initialCost = initialCost - this.paymentPlan.discount.value;
       }
     }
     
@@ -341,13 +394,13 @@ export class FinancialCalculations {
   calculateKeyMetrics() {
     const rentalIncome = this.calculateRentalIncome();
     
-    // Calculate initial investment based on payment plan
-    let initialInvestment = this.data.cost;
+    // Calculate initial investment based on entry date and payment plan
+    let initialInvestment = this.getUnitPriceAtEntry();
     if (this.paymentPlan && this.paymentPlan.discount.value > 0) {
       if (this.paymentPlan.discount.type === 'percentage') {
-        initialInvestment = this.data.cost * (1 - this.paymentPlan.discount.value / 100);
+        initialInvestment = initialInvestment * (1 - this.paymentPlan.discount.value / 100);
       } else {
-        initialInvestment = this.data.cost - this.paymentPlan.discount.value;
+        initialInvestment = initialInvestment - this.paymentPlan.discount.value;
       }
     }
     
