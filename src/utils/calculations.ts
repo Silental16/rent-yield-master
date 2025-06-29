@@ -41,13 +41,18 @@ export class FinancialCalculations {
     const breakdown = [];
     let total = 0;
 
+    // Получаем процент выручки от OTA каналов
+    const otaRevenuePercentage = this.data.otaBookings / 100;
+    const otaRevenue = grossIncome * otaRevenuePercentage;
+
     for (const expense of this.data.revenueExpenses) {
       let amount = 0;
       
       // Комиссия OTA начисляется только на выручку от OTA каналов
       if (expense.name.toLowerCase().includes('ota') || expense.name.toLowerCase().includes('комиссия ota')) {
-        amount = grossIncome * (this.data.otaBookings / 100) * (expense.percentage / 100);
+        amount = otaRevenue * (expense.percentage / 100);
       } else {
+        // Остальные расходы применяются ко всей выручке
         amount = grossIncome * (expense.percentage / 100);
       }
       
@@ -271,7 +276,7 @@ export class FinancialCalculations {
           payments.push({
             date: paymentDate.toISOString().split('T')[0],
             amount: monthlyPayment,
-            description: `Платеж ${i}`
+            description: `Платеж во время строительства ${i}`
           });
         }
       } else {
@@ -284,20 +289,20 @@ export class FinancialCalculations {
           payments.push({
             date: paymentDate.toISOString().split('T')[0],
             amount: fixedPayment,
-            description: `Платеж ${i}`
+            description: `Платеж во время строительства ${i}`
           });
         }
       }
       
-      // Финальный платеж в день запуска проекта
+      // Платежи после окончания строительства (остаток суммы)
       const totalPaid = payments.reduce((sum, payment) => sum + payment.amount, 0);
-      const finalPayment = totalInvestment - totalPaid;
+      const remainingAmount = totalInvestment - totalPaid;
       
-      if (finalPayment > 0) {
+      if (remainingAmount > 0) {
         payments.push({
           date: this.data.constructionEndDate,
-          amount: finalPayment,
-          description: 'Финальный платеж при запуске'
+          amount: remainingAmount,
+          description: 'Платеж после окончания строительства'
         });
       }
     }
