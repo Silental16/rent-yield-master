@@ -231,8 +231,22 @@ export class FinancialCalculations {
   // Расчет плана платежей
   calculatePaymentSchedule() {
     const totalInvestment = this.calculateTotalInvestment();
-    const payments = [];
-    
+    const payments = [] as Array<{ date: string; amount: number; description: string }>;
+
+    const entryDate = new Date(this.data.entryDate);
+    const constructionEndDate = new Date(this.data.constructionEndDate);
+
+    // Если вход в проект происходит после окончания строительства,
+    // вся сумма оплачивается в дату входа
+    if (entryDate > constructionEndDate) {
+      payments.push({
+        date: this.data.entryDate,
+        amount: totalInvestment,
+        description: 'Полная оплата при входе'
+      });
+      return payments;
+    }
+
     if (!this.data.paymentPlan.isInstallment) {
       // Полная оплата
       payments.push({
@@ -242,8 +256,10 @@ export class FinancialCalculations {
       });
     } else {
       // Рассрочка
+
       const entryDate = new Date(this.data.entryDate);
       const constructionEndDate = new Date(this.data.constructionEndDate);
+
 
       // Первоначальный взнос
       let downPaymentAmount;
