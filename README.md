@@ -71,3 +71,38 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## Payment Plans
+
+This application supports two ways of paying for a unit:
+
+1. **Full Payment** – the entire investment is paid on the entry date.
+2. **Installment Plan** – the cost is split into a down payment, several payments during construction and a final payment at launch.
+
+### Installment Plan fields
+
+- `discountType` – `'percentage'` or `'fixed'` determines how the discount is applied.
+- `discountValue` – amount of discount in percent or dollars.
+- `downPayment` – first payment either as a percentage or fixed value.
+- `constructionPayments` – percentage paid during construction with `mode` set to `'monthly'` or `'fixed'`. When using `'fixed'` also provide `count` to control the number of installments.
+
+### Example: prelaunch monthly installments
+
+```ts
+entryDate: '2024-01-01'
+constructionEndDate: '2024-06-01'
+paymentPlan: {
+  discountType: 'percentage',
+  discountValue: 5,
+  isInstallment: true,
+  downPayment: { type: 'percentage', value: 30 },
+  constructionPayments: { percentage: 50, mode: 'monthly' }
+}
+```
+
+This means 30% is paid at entry, 50% is divided evenly each month until 1 June 2024 and the remaining 20% is paid when the project launches. A 5% discount is applied to the total.
+
+### Special cases
+
+- If the `entryDate` is after the `constructionEndDate`, unpaid amounts are treated as payments after launch.
+- Discounts are applied to the total investment before calculating each installment.
