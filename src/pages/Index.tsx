@@ -7,7 +7,8 @@ import { CashFlowTable } from '@/components/CashFlowTable';
 import { ScenarioAnalysis } from '@/components/ScenarioAnalysis';
 import { ProjectManager } from '@/components/ProjectManager';
 import { useProjectStorage } from '@/hooks/useProjectStorage';
-import { Calculator, TrendingUp, BarChart3, PieChart } from 'lucide-react';
+import { Calculator, TrendingUp, BarChart3, PieChart, CreditCard } from 'lucide-react';
+import { PaymentPlansManager } from '@/components/PaymentPlansManager';
 
 export interface ProjectData {
   // Временные параметры
@@ -164,10 +165,14 @@ const Index = () => {
         />
 
         <Tabs defaultValue="parameters" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-white/50 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-5 bg-white/50 backdrop-blur-sm">
             <TabsTrigger value="parameters" className="flex items-center gap-2">
               <Calculator className="w-4 h-4" />
               Параметры
+            </TabsTrigger>
+            <TabsTrigger value="payment-plans" className="flex items-center gap-2">
+              <CreditCard className="w-4 h-4" />
+              Планы оплаты
             </TabsTrigger>
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
@@ -192,6 +197,19 @@ const Index = () => {
               </CardHeader>
               <CardContent>
                 <ProjectForm data={currentProject} onChange={updateCurrentProject} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="payment-plans">
+            <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-xl">
+              <CardHeader>
+                <CardTitle className="text-2xl font-semibold text-gray-800">
+                  Управление планами оплаты
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <PaymentPlansManager />
               </CardContent>
             </Card>
           </TabsContent>
