@@ -119,6 +119,17 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
               />
             </div>
             <div>
+              <Label htmlFor="cost">Стоимость ($)</Label>
+              <Input
+                type="number"
+                id="cost"
+                value={data.cost}
+                onChange={(e) => onChange({ ...data, cost: parseFloat(e.target.value) })}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
               <Label htmlFor="adr">Средний дневной доход (ADR, $)</Label>
               <Input
                 type="number"
@@ -127,8 +138,6 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
                 onChange={(e) => onChange({ ...data, adr: parseFloat(e.target.value) })}
               />
             </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="occupancy">Заполняемость (%)</Label>
               <Input
@@ -138,49 +147,6 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
                 onChange={(e) => onChange({ ...data, occupancy: parseFloat(e.target.value) })}
               />
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Этапы ценообразования</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DragDropListEditor
-            items={data.pricingStages.map(stage => ({
-              id: `${stage.name}-${stage.date}`,
-              name: stage.name,
-              percentage: stage.price,
-              date: stage.date
-            }))}
-            onItemsChange={(items) => {
-              const newStages = items.map(item => ({
-                name: item.name,
-                price: item.percentage,
-                percentage: item.percentage,
-                date: item.date || new Date().toISOString().split('T')[0]
-              }));
-              onChange({ ...data, pricingStages: newStages });
-            }}
-            title="Этапы ценообразования"
-            showDate={true}
-            itemNamePlaceholder="Название этапа (например: Повышение цены)"
-            addButtonText="Добавить этап"
-            percentageLabel="Цена ($)"
-            protectedItems={[]}
-            fixedFirstItem={{
-              name: 'Базовая цена',
-              canEditName: false,
-              canDelete: false,
-              canMove: false
-            }}
-          />
-          <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-700">
-              Первый этап "Базовая цена" - это начальная стоимость юнита. 
-              Последующие этапы - это повышения цены с указанием новой стоимости и даты вступления в силу.
-            </p>
           </div>
         </CardContent>
       </Card>
@@ -359,6 +325,42 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
 
       <Card>
         <CardHeader>
+          <CardTitle>Этапы ценообразования</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DragDropListEditor
+            items={data.pricingStages.map(stage => ({
+              id: `${stage.name}-${stage.date}`,
+              name: stage.name,
+              percentage: stage.price || stage.percentage,
+              date: stage.date
+            }))}
+            onItemsChange={(items) => {
+              const newStages = items.map(item => ({
+                name: item.name,
+                price: item.percentage,
+                percentage: item.percentage,
+                date: item.date || new Date().toISOString().split('T')[0]
+              }));
+              onChange({ ...data, pricingStages: newStages });
+            }}
+            title="Этапы ценообразования"
+            showDate={true}
+            itemNamePlaceholder="Название этапа (например: Базовая цена)"
+            addButtonText="Добавить этап"
+            percentageLabel="Цена ($)"
+          />
+          <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+            <p className="text-sm text-blue-700">
+              Первый этап должен быть "Базовая цена" с указанием начальной стоимости юнита. 
+              Последующие этапы - это повышения цены с указанием новой стоимости и даты вступления в силу.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Сценарии выхода</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-6">
@@ -520,7 +522,7 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
             }}
             title="Расходы из прибыли"
             itemNamePlaceholder="Название расхода"
-            addButtonText="Добавить расход"
+            addButtontext="Добавить расход"
           />
         </CardContent>
       </Card>
