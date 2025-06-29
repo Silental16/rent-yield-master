@@ -85,6 +85,13 @@ export const ScenarioAnalysis = ({ data }: ScenarioAnalysisProps) => {
 
   const COLORS = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444'];
 
+  // Custom function to render bars with conditional colors
+  const renderCustomizedBar = (props: any) => {
+    const { fill, ...rest } = props;
+    const barColor = props.payload.impact >= 0 ? '#10b981' : '#ef4444';
+    return <Bar {...rest} fill={barColor} />;
+  };
+
   return (
     <div className="space-y-6">
       {/* Сценарии выхода */}
@@ -159,10 +166,7 @@ export const ScenarioAnalysis = ({ data }: ScenarioAnalysisProps) => {
                 <Tooltip 
                   formatter={(value: number) => [formatPercent(value), 'Влияние на ROI']}
                 />
-                <Bar 
-                  dataKey="impact" 
-                  fill={(entry: any) => entry.impact >= 0 ? '#10b981' : '#ef4444'}
-                />
+                <Bar dataKey="impact" fill="#10b981" />
               </BarChart>
             </ResponsiveContainer>
           </div>
