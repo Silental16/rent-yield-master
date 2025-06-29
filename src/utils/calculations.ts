@@ -239,7 +239,6 @@ export class FinancialCalculations {
       
       // Платежи во время строительства
       const constructionPaymentAmount = totalInvestment * (this.data.paymentPlan.constructionPayments.percentage / 100);
-      const remainingAfterDown = totalInvestment - downPaymentAmount;
       
       const monthsDuringConstruction = Math.max(1, Math.floor((constructionEndDate.getTime() - entryDate.getTime()) / (30 * 24 * 60 * 60 * 1000)));
       
@@ -269,7 +268,7 @@ export class FinancialCalculations {
         }
       }
       
-      // Финальный платеж
+      // Финальный платеж в день запуска проекта
       const totalPaid = payments.reduce((sum, payment) => sum + payment.amount, 0);
       const finalPayment = totalInvestment - totalPaid;
       
@@ -277,7 +276,7 @@ export class FinancialCalculations {
         payments.push({
           date: this.data.constructionEndDate,
           amount: finalPayment,
-          description: 'Финальный платеж'
+          description: 'Финальный платеж при запуске'
         });
       }
     }

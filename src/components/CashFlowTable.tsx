@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProjectData } from '@/pages/Index';
 import { FinancialCalculations } from '@/utils/calculations';
@@ -56,11 +55,11 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
         <CardTitle className="text-xl font-semibold">Детализированный Cash Flow Analysis</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto relative">
           <table className="w-full border-collapse text-sm">
-            <thead className="sticky top-0 bg-white">
+            <thead className="sticky top-0 bg-white z-10">
               <tr className="border-b-2 border-gray-200">
-                <th className="text-left p-3 font-semibold bg-gray-50">Показатель</th>
+                <th className="text-left p-3 font-semibold bg-gray-50 sticky left-0 z-20 border-r-2 border-gray-200">Показатель</th>
                 {yearlyData.map((year) => (
                   <th key={year.year} className="text-center p-3 font-semibold bg-gray-50" colSpan={12}>
                     Год {year.year}
@@ -68,7 +67,7 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
                 ))}
               </tr>
               <tr className="border-b border-gray-100">
-                <th className="text-left p-2 bg-gray-25"></th>
+                <th className="text-left p-2 bg-gray-25 sticky left-0 z-20 border-r-2 border-gray-200"></th>
                 {yearlyData.map((year) => 
                   year.months.map((month, monthIndex) => (
                     <th key={`${year.year}-${monthIndex}`} className="text-center p-2 text-xs bg-gray-25">
@@ -81,7 +80,7 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
             <tbody>
               {/* Платежи инвестора */}
               <tr className="border-b border-gray-100">
-                <td className="p-3 font-semibold text-red-700 bg-red-50">Платежи инвестора</td>
+                <td className="p-3 font-semibold text-red-700 bg-red-50 sticky left-0 z-10 border-r-2 border-gray-200">Платежи инвестора</td>
                 {yearlyData.map((year) => 
                   year.months.map((month, monthIndex) => (
                     <td key={`inv-${year.year}-${monthIndex}`} className="text-center p-2 text-red-600">
@@ -93,7 +92,7 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
 
               {/* Доход от аренды */}
               <tr className="border-b border-gray-100">
-                <td className="p-3 font-semibold text-green-700 bg-green-50">Доход от аренды</td>
+                <td className="p-3 font-semibold text-green-700 bg-green-50 sticky left-0 z-10 border-r-2 border-gray-200">Доход от аренды</td>
                 {yearlyData.map((year) => 
                   year.months.map((month, monthIndex) => (
                     <td key={`rent-${year.year}-${monthIndex}`} className="text-center p-2 text-green-600">
@@ -105,7 +104,7 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
 
               {/* Операционные расходы - общая строка */}
               <tr className="border-b border-gray-100">
-                <td className="p-3 font-semibold text-red-700 bg-red-50">Операционные расходы</td>
+                <td className="p-3 font-semibold text-red-700 bg-red-50 sticky left-0 z-10 border-r-2 border-gray-200">Операционные расходы</td>
                 {yearlyData.map((year) => 
                   year.months.map((month, monthIndex) => (
                     <td key={`op-${year.year}-${monthIndex}`} className="text-center p-2 text-red-600">
@@ -118,7 +117,7 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
               {/* Детализация расходов из выручки */}
               {data.revenueExpenses.map((expense, expenseIndex) => (
                 <tr key={`rev-exp-${expenseIndex}`} className="border-b border-gray-50">
-                  <td className="p-3 pl-8 text-sm text-gray-600">- {expense.name} ({expense.percentage}%)</td>
+                  <td className="p-3 pl-8 text-sm text-gray-600 sticky left-0 z-10 bg-white border-r-2 border-gray-200">- {expense.name} ({expense.percentage}%)</td>
                   {yearlyData.map((year) => 
                     year.months.map((month, monthIndex) => {
                       const expenseAmount = month.data.rentalIncome * expense.percentage / 100;
@@ -135,7 +134,7 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
               {/* Детализация расходов из прибыли */}
               {data.profitExpenses.map((expense, expenseIndex) => (
                 <tr key={`prof-exp-${expenseIndex}`} className="border-b border-gray-50">
-                  <td className="p-3 pl-8 text-sm text-gray-600">- {expense.name} ({expense.percentage}%)</td>
+                  <td className="p-3 pl-8 text-sm text-gray-600 sticky left-0 z-10 bg-white border-r-2 border-gray-200">- {expense.name} ({expense.percentage}%)</td>
                   {yearlyData.map((year) => 
                     year.months.map((month, monthIndex) => {
                       const revenueExpenses = data.revenueExpenses.reduce((sum, revExp) => 
@@ -156,7 +155,7 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
               {/* Операционные расходы - детализация */}
               {data.monthlyExpenses.enabled && (
                 <tr className="border-b border-gray-50">
-                  <td className="p-3 pl-8 text-sm text-gray-600">- Месячные расходы</td>
+                  <td className="p-3 pl-8 text-sm text-gray-600 sticky left-0 z-10 bg-white border-r-2 border-gray-200">- Месячные расходы</td>
                   {yearlyData.map((year) => 
                     year.months.map((month, monthIndex) => (
                       <td key={`monthly-${year.year}-${monthIndex}`} className="text-center p-2 text-xs text-gray-500">
@@ -169,7 +168,7 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
 
               {data.annualRepair.enabled && (
                 <tr className="border-b border-gray-50">
-                  <td className="p-3 pl-8 text-sm text-gray-600">- Годовые ремонт</td>
+                  <td className="p-3 pl-8 text-sm text-gray-600 sticky left-0 z-10 bg-white border-r-2 border-gray-200">- Годовые ремонт</td>
                   {yearlyData.map((year) => 
                     year.months.map((month, monthIndex) => (
                       <td key={`repair-${year.year}-${monthIndex}`} className="text-center p-2 text-xs text-gray-500">
@@ -182,7 +181,7 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
 
               {data.insurance.enabled && (
                 <tr className="border-b border-gray-50">
-                  <td className="p-3 pl-8 text-sm text-gray-600">- Страховка</td>
+                  <td className="p-3 pl-8 text-sm text-gray-600 sticky left-0 z-10 bg-white border-r-2 border-gray-200">- Страховка</td>
                   {yearlyData.map((year) => 
                     year.months.map((month, monthIndex) => (
                       <td key={`insurance-${year.year}-${monthIndex}`} className="text-center p-2 text-xs text-gray-500">
@@ -195,7 +194,7 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
 
               {/* Чистый денежный поток */}
               <tr className="border-b-2 border-gray-200 bg-purple-50">
-                <td className="p-3 font-bold text-purple-700">Чистый денежный поток</td>
+                <td className="p-3 font-bold text-purple-700 sticky left-0 z-10 border-r-2 border-gray-200 bg-purple-50">Чистый денежный поток</td>
                 {yearlyData.map((year) => 
                   year.months.map((month, monthIndex) => (
                     <td key={`net-${year.year}-${monthIndex}`} className={`text-center p-2 font-semibold ${month.data.netCashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -207,7 +206,7 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
 
               {/* Накопленный денежный поток */}
               <tr className="border-b-2 border-gray-200 bg-indigo-50">
-                <td className="p-3 font-bold text-indigo-700">Накопленный CF</td>
+                <td className="p-3 font-bold text-indigo-700 sticky left-0 z-10 border-r-2 border-gray-200 bg-indigo-50">Накопленный CF</td>
                 {yearlyData.map((year) => 
                   year.months.map((month, monthIndex) => (
                     <td key={`cum-${year.year}-${monthIndex}`} className={`text-center p-2 font-semibold ${month.data.cumulativeCashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
