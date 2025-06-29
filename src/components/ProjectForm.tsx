@@ -625,6 +625,44 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
               <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
+                    <Label>Тип плана</Label>
+                    <div className="flex gap-2 mt-2">
+                      <Button
+                        size="sm"
+                        variant={data.paymentPlan.type === 'construction' ? 'default' : 'outline'}
+                        onClick={() => updateData({
+                          paymentPlan: { ...data.paymentPlan, type: 'construction' }
+                        })}
+                      >
+                        Строительство
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={data.paymentPlan.type === 'monthly' ? 'default' : 'outline'}
+                        onClick={() => updateData({
+                          paymentPlan: { ...data.paymentPlan, type: 'monthly' }
+                        })}
+                      >
+                        Помесячно
+                      </Button>
+                    </div>
+                  </div>
+                  {data.paymentPlan.type === 'monthly' && (
+                    <div>
+                      <Label htmlFor="plan-months">Количество месяцев</Label>
+                      <Input
+                        id="plan-months"
+                        type="number"
+                        value={data.paymentPlan.months}
+                        onChange={(e) => updateData({
+                          paymentPlan: { ...data.paymentPlan, months: Number(e.target.value) }
+                        })}
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
                     <Label>Тип первоначального взноса</Label>
                     <div className="flex gap-2 mt-2">
                       <Button

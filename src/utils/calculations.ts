@@ -271,36 +271,68 @@ export class FinancialCalculations {
         downPaymentAmount = this.data.paymentPlan.downPayment.value;
       }
 
-      // Платежи во время строительства
-      const constructionPaymentAmount =
-        totalInvestment *
-        (this.data.paymentPlan.constructionPayments.percentage / 100);
+      
+      payments.push({
+        date: this.data.entryDate,
+        amount: downPaymentAmount,
+        description: 'Первоначальный взнос'
+      });
+      
+      if (this.data.paymentPlan.type === 'monthly') {
+        const months = this.data.paymentPlan.months || 0;
+        const monthlyAmount = (totalInvestment - downPaymentAmount) / months;
 
-      const monthsDuringConstruction = Math.max(
-        1,
-        Math.floor(
-          (constructionEndDate.getTime() - entryDate.getTime()) /
-            (30 * 24 * 60 * 60 * 1000)
-        )
-      );
-
-      if (this.data.paymentPlan.type === 'prelaunch') {
-        // Months available before the final payment
-        const allowedMonths = monthsDuringConstruction - 1;
-
-        if (allowedMonths < 1) {
-          // Combine down payment and construction portion into a single payment
+        for (let i = 1; i <= months; i++) {
+          const paymentDate = new Date(entryDate);
+          paymentDate.setMonth(paymentDate.getMonth() + i);
           payments.push({
-            date: this.data.entryDate,
-            amount: downPaymentAmount + constructionPaymentAmount,
-            description: 'Первоначальный взнос'
+            date: paymentDate.toISOString().split('T')[0],
+            amount: monthlyAmount,
+            description: `Платеж ${i}`
           });
+        }
+      } else {
+        // Платежи во время строительства
+        const constructionPaymentAmount = totalInvestment * (this.data.paymentPlan.constructionPayments.percentage / 100);
+
+        const monthsDuringConstruction = Math.max(1, Math.floor((constructionEndDate.getTime() - entryDate.getTime()) / (30 * 24 * 60 * 60 * 1000)));
+
+        if (this.data.paymentPlan.constructionPayments.mode === 'monthly') {
+          const monthlyPayment = constructionPaymentAmount / monthsDuringConstruction;
+
+          for (let i = 1; i < monthsDuringConstruction; i++) {
+            const paymentDate = new Date(entryDate.getTime() + i * 30 * 24 * 60 * 60 * 1000);
+            payments.push({
+              date: paymentDate.toISOString().split('T')[0],
+              amount: monthlyPayment,
+              description: `Платеж ${i}`
+            });
+          }
         } else {
-          // Down payment on entry
+          // Фиксированное количество платежей
+          const paymentCount = this.data.paymentPlan.constructionPayments.count || 12;
+          const fixedPayment = constructionPaymentAmount / paymentCount;
+
+          for (let i = 1; i <= paymentCount && i < monthsDuringConstruction; i++) {
+            const paymentDate = new Date(entryDate.getTime() + i * (monthsDuringConstruction / paymentCount) * 30 * 24 * 60 * 60 * 1000);
+            payments.push({
+              date: paymentDate.toISOString().split('T')[0],
+              amount: fixedPayment,
+              description: `Платеж ${i}`
+            });
+          }
+        }
+
+        // Финальный платеж в день запуска проекта
+        const totalPaid = payments.reduce((sum, payment) => sum + payment.amount, 0);
+        const finalPayment = totalInvestment - totalPaid;
+
+        if (finalPayment > 0) {
           payments.push({
-            date: this.data.entryDate,
-            amount: downPaymentAmount,
-            description: 'Первоначальный взнос'
+            date: this.data.constructionEndDate,
+            amount: finalPayment,
+            description: 'Финальный платеж при запуске'
+
           });
 
           // Spread construction payments evenly until launch minus one month
@@ -355,7 +387,6 @@ export class FinancialCalculations {
           }
         }
       }
-
       // Финальный платеж в день запуска проекта
       const totalPaid = payments.reduce((sum, payment) => sum + payment.amount, 0);
       const finalPayment = totalInvestment - totalPaid;
@@ -367,6 +398,7 @@ export class FinancialCalculations {
           description: 'Финальный платеж при запуске'
         });
       }
+
     }
     
     return payments;
