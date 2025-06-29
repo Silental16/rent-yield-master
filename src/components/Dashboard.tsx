@@ -2,8 +2,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProjectData } from '@/pages/Index';
 import { FinancialCalculations } from '@/utils/calculations';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { TrendingUp, DollarSign, Percent, Calendar } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
+import { TrendingUp, DollarSign, Percent, Calendar, Target } from 'lucide-react';
 
 interface DashboardProps {
   data: ProjectData;
@@ -50,7 +50,7 @@ export const Dashboard = ({ data }: DashboardProps) => {
   return (
     <div className="space-y-6">
       {/* Ключевые метрики */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -90,6 +90,22 @@ export const Dashboard = ({ data }: DashboardProps) => {
                   </p>
                 </div>
                 <DollarSign className="h-8 w-8 text-purple-600" />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {data.irrEnabled && (
+          <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100 border-indigo-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-indigo-600">IRR</p>
+                  <p className="text-2xl font-bold text-indigo-700">
+                    {formatPercent(keyMetrics.irr)}
+                  </p>
+                </div>
+                <Target className="h-8 w-8 text-indigo-600" />
               </div>
             </CardContent>
           </Card>
@@ -155,6 +171,7 @@ export const Dashboard = ({ data }: DashboardProps) => {
                   formatter={(value: number) => [formatCurrency(value)]}
                   labelFormatter={(year) => `Год ${year}`}
                 />
+                <Legend />
                 <Bar dataKey="grossIncome" fill="#3b82f6" name="Валовой доход" />
                 <Bar dataKey="operatingProfit" fill="#10b981" name="Операционная прибыль" />
                 <Bar dataKey="netProfit" fill="#8b5cf6" name="Чистая прибыль" />
@@ -164,35 +181,123 @@ export const Dashboard = ({ data }: DashboardProps) => {
         </CardContent>
       </Card>
 
-      {/* Таблица доходности */}
+      {/* Вертикальная таблица доходности */}
       <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-xl">
         <CardHeader>
-          <CardTitle className="text-xl font-semibold">Таблица доходности аренды</CardTitle>
+          <CardTitle className="text-xl font-semibold">Детализированная таблица доходности</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
+            <table className="w-full border-collapse text-sm">
               <thead>
                 <tr className="border-b-2 border-gray-200">
-                  <th className="text-left p-2 font-semibold">Год</th>
-                  <th className="text-right p-2 font-semibold">Валовой доход</th>
-                  <th className="text-right p-2 font-semibold">Расходы из выручки</th>
-                  <th className="text-right p-2 font-semibold">Операционная прибыль</th>
-                  <th className="text-right p-2 font-semibold">Расходы из прибыли</th>
-                  <th className="text-right p-2 font-semibold">Чистая прибыль</th>
+                  <th className="text-left p-3 font-semibold bg-gray-50">Показатель</th>
+                  {rentalTable.map((_, index) => (
+                    <th key={index} className="text-center p-3 font-semibold bg-gray-50">
+                      Год {index + 1}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {rentalTable.map((year, index) => (
-                  <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="p-2 font-medium">{index + 1}</td>
-                    <td className="text-right p-2">{formatCurrency(year.grossIncome)}</td>
-                    <td className="text-right p-2 text-red-600">-{formatCurrency(year.revenueExpenses)}</td>
-                    <td className="text-right p-2 text-blue-600">{formatCurrency(year.operatingProfit)}</td>
-                    <td className="text-right p-2 text-red-600">-{formatCurrency(year.profitExpenses)}</td>
-                    <td className="text-right p-2 text-green-600 font-semibold">{formatCurrency(year.netProfit)}</td>
+                <tr className="border-b border-gray-100">
+                  <td className="p-3 font-semibold text-blue-700 bg-blue-50">Валовой доход</td>
+                  {rentalTable.map((year, index) => (
+                    <td key={index} className="text-center p-3 text-blue-600">
+                      {formatCurrency(year.grossIncome)}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b border-gray-100">
+                  <td className="p-3 pl-6 text-red-600">- Расходы из выручки</td>
+                  {rentalTable.map((year, index) => (
+                    <td key={index} className="text-center p-3 text-red-600">
+                      -{formatCurrency(year.revenueExpenses)}
+                    </td>
+                  ))}
+                </tr>
+                {data.revenueExpenses.map((expense, expenseIndex) => (
+                  <tr key={expenseIndex} className="border-b border-gray-50">
+                    <td className="p-3 pl-12 text-sm text-gray-600">- {expense.name}</td>
+                    {rentalTable.map((year, yearIndex) => (
+                      <td key={yearIndex} className="text-center p-3 text-sm text-gray-500">
+                        -{formatCurrency(year.grossIncome * expense.percentage / 100)}
+                      </td>
+                    ))}
                   </tr>
                 ))}
+                <tr className="border-b border-gray-100">
+                  <td className="p-3 font-semibold text-green-700 bg-green-50">Операционная прибыль</td>
+                  {rentalTable.map((year, index) => (
+                    <td key={index} className="text-center p-3 text-green-600 font-semibold">
+                      {formatCurrency(year.operatingProfit)}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b border-gray-100">
+                  <td className="p-3 pl-6 text-red-600">- Расходы из прибыли</td>
+                  {rentalTable.map((year, index) => (
+                    <td key={index} className="text-center p-3 text-red-600">
+                      -{formatCurrency(year.profitExpenses)}
+                    </td>
+                  ))}
+                </tr>
+                {data.profitExpenses.map((expense, expenseIndex) => (
+                  <tr key={expenseIndex} className="border-b border-gray-50">
+                    <td className="p-3 pl-12 text-sm text-gray-600">- {expense.name}</td>
+                    {rentalTable.map((year, yearIndex) => (
+                      <td key={yearIndex} className="text-center p-3 text-sm text-gray-500">
+                        -{formatCurrency(year.operatingProfit * expense.percentage / 100)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+                <tr className="border-b border-gray-100">
+                  <td className="p-3 pl-6 text-red-600">- Операционные расходы</td>
+                  {rentalTable.map((year, index) => (
+                    <td key={index} className="text-center p-3 text-red-600">
+                      -{formatCurrency(year.operationalExpenses)}
+                    </td>
+                  ))}
+                </tr>
+                {data.monthlyExpenses.enabled && (
+                  <tr className="border-b border-gray-50">
+                    <td className="p-3 pl-12 text-sm text-gray-600">- Месячные расходы</td>
+                    {rentalTable.map((_, index) => (
+                      <td key={index} className="text-center p-3 text-sm text-gray-500">
+                        -{formatCurrency(data.monthlyExpenses.value * 12)}
+                      </td>
+                    ))}
+                  </tr>
+                )}
+                {data.annualRepair.enabled && (
+                  <tr className="border-b border-gray-50">
+                    <td className="p-3 pl-12 text-sm text-gray-600">- Годовые ремонт</td>
+                    {rentalTable.map((_, index) => (
+                      <td key={index} className="text-center p-3 text-sm text-gray-500">
+                        -{formatCurrency(data.annualRepair.value)}
+                      </td>
+                    ))}
+                  </tr>
+                )}
+                {data.insurance.enabled && (
+                  <tr className="border-b border-gray-50">
+                    <td className="p-3 pl-12 text-sm text-gray-600">- Страховка</td>
+                    {rentalTable.map((_, index) => (
+                      <td key={index} className="text-center p-3 text-sm text-gray-500">
+                        -{formatCurrency(data.insurance.value)}
+                      </td>
+                    ))}
+                  </tr>
+                )}
+                <tr className="border-b-2 border-gray-200 bg-purple-50">
+                  <td className="p-3 font-bold text-purple-700">Чистая прибыль</td>
+                  {rentalTable.map((year, index) => (
+                    <td key={index} className="text-center p-3 text-purple-700 font-bold">
+                      {formatCurrency(year.netProfit)}
+                    </td>
+                  ))}
+                </tr>
               </tbody>
             </table>
           </div>

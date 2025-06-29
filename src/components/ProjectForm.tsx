@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,7 +6,8 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { PlusCircle, MinusCircle } from 'lucide-react';
+import { PlusCircle, GripVertical, X } from 'lucide-react';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { ProjectData } from '@/pages/Index';
 
 interface ProjectFormProps {
@@ -44,16 +44,58 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
     updateData({ pricingStages: updated });
   };
 
+  const onDragEndPricingStages = (result: any) => {
+    if (!result.destination) return;
+
+    const items = Array.from(data.pricingStages);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    updateData({ pricingStages: items });
+  };
+
   const addRevenueExpense = () => {
     updateData({
       revenueExpenses: [...data.revenueExpenses, { name: 'Новый расход', percentage: 0 }]
     });
   };
 
+  const removeRevenueExpense = (index: number) => {
+    updateData({
+      revenueExpenses: data.revenueExpenses.filter((_, i) => i !== index)
+    });
+  };
+
+  const onDragEndRevenueExpenses = (result: any) => {
+    if (!result.destination) return;
+
+    const items = Array.from(data.revenueExpenses);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    updateData({ revenueExpenses: items });
+  };
+
   const addProfitExpense = () => {
     updateData({
       profitExpenses: [...data.profitExpenses, { name: 'Новый расход', percentage: 0 }]
     });
+  };
+
+  const removeProfitExpense = (index: number) => {
+    updateData({
+      profitExpenses: data.profitExpenses.filter((_, i) => i !== index)
+    });
+  };
+
+  const onDragEndProfitExpenses = (result: any) => {
+    if (!result.destination) return;
+
+    const items = Array.from(data.profitExpenses);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    updateData({ profitExpenses: items });
   };
 
   return (
@@ -280,41 +322,64 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {data.pricingStages.map((stage, index) => (
-              <div key={index} className="grid grid-cols-4 gap-4 items-end">
-                <div>
-                  <Label>Название</Label>
-                  <Input
-                    value={stage.name}
-                    onChange={(e) => updatePricingStage(index, 'name', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Процент (%)</Label>
-                  <Input
-                    type="number"
-                    value={stage.percentage}
-                    onChange={(e) => updatePricingStage(index, 'percentage', Number(e.target.value))}
-                  />
-                </div>
-                <div>
-                  <Label>Дата</Label>
-                  <Input
-                    type="date"
-                    value={stage.date}
-                    onChange={(e) => updatePricingStage(index, 'date', e.target.value)}
-                  />
-                </div>
-                <Button
-                  onClick={() => removePricingStage(index)}
-                  size="sm"
-                  variant="destructive"
-                  disabled={data.pricingStages.length <= 1}
-                >
-                  <MinusCircle className="w-4 h-4" />
-                </Button>
-              </div>
-            ))}
+            <DragDropContext onDragEnd={onDragEndPricingStages}>
+              <Droppable droppableId="pricing-stages">
+                {(provided) => (
+                  <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
+                    {data.pricingStages.map((stage, index) => (
+                      <Draggable key={`stage-${index}`} draggableId={`stage-${index}`} index={index}>
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            className={`grid grid-cols-5 gap-4 items-center p-3 rounded-lg border ${
+                              snapshot.isDragging ? 'bg-blue-50 border-blue-200' : 'bg-gray-50'
+                            }`}
+                          >
+                            <div {...provided.dragHandleProps} className="flex justify-center">
+                              <GripVertical className="w-4 h-4 text-gray-400" />
+                            </div>
+                            <div>
+                              <Label>Название</Label>
+                              <Input
+                                value={stage.name}
+                                onChange={(e) => updatePricingStage(index, 'name', e.target.value)}
+                              />
+                            </div>
+                            <div>
+                              <Label>Процент (%)</Label>
+                              <Input
+                                type="number"
+                                value={stage.percentage}
+                                onChange={(e) => updatePricingStage(index, 'percentage', Number(e.target.value))}
+                              />
+                            </div>
+                            <div>
+                              <Label>Дата</Label>
+                              <Input
+                                type="date"
+                                value={stage.date}
+                                onChange={(e) => updatePricingStage(index, 'date', e.target.value)}
+                              />
+                            </div>
+                            <Button
+                              onClick={() => removePricingStage(index)}
+                              size="sm"
+                              variant="ghost"
+                              disabled={data.pricingStages.length <= 1}
+                              className="h-8 w-8 p-0"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
           </CardContent>
         </Card>
 
@@ -404,33 +469,63 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {data.revenueExpenses.map((expense, index) => (
-              <div key={index} className="grid grid-cols-3 gap-4 items-end">
-                <div className="col-span-2">
-                  <Label>Название</Label>
-                  <Input
-                    value={expense.name}
-                    onChange={(e) => {
-                      const updated = [...data.revenueExpenses];
-                      updated[index].name = e.target.value;
-                      updateData({ revenueExpenses: updated });
-                    }}
-                  />
-                </div>
-                <div>
-                  <Label>Процент (%)</Label>
-                  <Input
-                    type="number"
-                    value={expense.percentage}
-                    onChange={(e) => {
-                      const updated = [...data.revenueExpenses];
-                      updated[index].percentage = Number(e.target.value);
-                      updateData({ revenueExpenses: updated });
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
+            <DragDropContext onDragEnd={onDragEndRevenueExpenses}>
+              <Droppable droppableId="revenue-expenses">
+                {(provided) => (
+                  <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
+                    {data.revenueExpenses.map((expense, index) => (
+                      <Draggable key={`revenue-${index}`} draggableId={`revenue-${index}`} index={index}>
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            className={`grid grid-cols-4 gap-4 items-center p-3 rounded-lg border ${
+                              snapshot.isDragging ? 'bg-blue-50 border-blue-200' : 'bg-gray-50'
+                            }`}
+                          >
+                            <div {...provided.dragHandleProps} className="flex justify-center">
+                              <GripVertical className="w-4 h-4 text-gray-400" />
+                            </div>
+                            <div className="col-span-2">
+                              <Label>Название</Label>
+                              <Input
+                                value={expense.name}
+                                onChange={(e) => {
+                                  const updated = [...data.revenueExpenses];
+                                  updated[index].name = e.target.value;
+                                  updateData({ revenueExpenses: updated });
+                                }}
+                              />
+                            </div>
+                            <div>
+                              <Label>Процент (%)</Label>
+                              <Input
+                                type="number"
+                                value={expense.percentage}
+                                onChange={(e) => {
+                                  const updated = [...data.revenueExpenses];
+                                  updated[index].percentage = Number(e.target.value);
+                                  updateData({ revenueExpenses: updated });
+                                }}
+                              />
+                            </div>
+                            <Button
+                              onClick={() => removeRevenueExpense(index)}
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
           </CardContent>
         </Card>
 
@@ -445,33 +540,63 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {data.profitExpenses.map((expense, index) => (
-              <div key={index} className="grid grid-cols-3 gap-4 items-end">
-                <div className="col-span-2">
-                  <Label>Название</Label>
-                  <Input
-                    value={expense.name}
-                    onChange={(e) => {
-                      const updated = [...data.profitExpenses];
-                      updated[index].name = e.target.value;
-                      updateData({ profitExpenses: updated });
-                    }}
-                  />
-                </div>
-                <div>
-                  <Label>Процент (%)</Label>
-                  <Input
-                    type="number"
-                    value={expense.percentage}
-                    onChange={(e) => {
-                      const updated = [...data.profitExpenses];
-                      updated[index].percentage = Number(e.target.value);
-                      updateData({ profitExpenses: updated });
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
+            <DragDropContext onDragEnd={onDragEndProfitExpenses}>
+              <Droppable droppableId="profit-expenses">
+                {(provided) => (
+                  <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
+                    {data.profitExpenses.map((expense, index) => (
+                      <Draggable key={`profit-${index}`} draggableId={`profit-${index}`} index={index}>
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            className={`grid grid-cols-4 gap-4 items-center p-3 rounded-lg border ${
+                              snapshot.isDragging ? 'bg-blue-50 border-blue-200' : 'bg-gray-50'
+                            }`}
+                          >
+                            <div {...provided.dragHandleProps} className="flex justify-center">
+                              <GripVertical className="w-4 h-4 text-gray-400" />
+                            </div>
+                            <div className="col-span-2">
+                              <Label>Название</Label>
+                              <Input
+                                value={expense.name}
+                                onChange={(e) => {
+                                  const updated = [...data.profitExpenses];
+                                  updated[index].name = e.target.value;
+                                  updateData({ profitExpenses: updated });
+                                }}
+                              />
+                            </div>
+                            <div>
+                              <Label>Процент (%)</Label>
+                              <Input
+                                type="number"
+                                value={expense.percentage}
+                                onChange={(e) => {
+                                  const updated = [...data.profitExpenses];
+                                  updated[index].percentage = Number(e.target.value);
+                                  updateData({ profitExpenses: updated });
+                                }}
+                              />
+                            </div>
+                            <Button
+                              onClick={() => removeProfitExpense(index)}
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
           </CardContent>
         </Card>
 

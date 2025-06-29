@@ -1,4 +1,3 @@
-
 import { ProjectData } from '@/pages/Index';
 
 export class FinancialCalculations {
@@ -167,6 +166,9 @@ export class FinancialCalculations {
         return sum + month.netCashFlow / discountFactor;
       }, 0);
     }
+
+    // IRR
+    const irr = this.calculateIRR();
     
     // Срок окупаемости
     const cashFlow = this.calculateCashFlow();
@@ -185,6 +187,7 @@ export class FinancialCalculations {
       roi10Year,
       averageAnnualReturn,
       npv,
+      irr,
       paybackPeriod
     };
   }
@@ -419,5 +422,32 @@ export class FinancialCalculations {
     this.data = originalData;
     
     return stressROI;
+  }
+
+  // IRR calculation using Newton-Raphson method
+  calculateIRR(): number {
+    if (!this.data.irrEnabled) return 0;
+    
+    const cashFlow = this.calculateCashFlow();
+    let irr = 0.1; // Initial guess 10%
+    
+    for (let i = 0; i < 100; i++) {
+      let npv = 0;
+      let dnpv = 0;
+      
+      cashFlow.forEach((month, index) => {
+        const period = index / 12;
+        const discountFactor = Math.pow(1 + irr, period);
+        npv += month.netCashFlow / discountFactor;
+        dnpv -= (period * month.netCashFlow) / Math.pow(1 + irr, period + 1);
+      });
+      
+      if (Math.abs(npv) < 0.01) break;
+      if (dnpv === 0) break;
+      
+      irr = irr - npv / dnpv;
+    }
+    
+    return irr * 100; // Convert to percentage
   }
 }
