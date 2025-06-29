@@ -107,15 +107,17 @@ const Index = () => {
           </TabsContent>
           
           <TabsContent value="dashboard">
-            <Dashboard data={projectData} />
+            <Dashboard data={projectData} paymentPlan={selectedPaymentPlan} />
           </TabsContent>
           
           <TabsContent value="scenarios">
-            <ScenarioAnalysis data={projectData} />
+            <ScenarioAnalysis data={projectData} paymentPlan={selectedPaymentPlan} />
           </TabsContent>
           
           <TabsContent value="payment-plans">
-            <PaymentPlansManager onPaymentPlanSelect={setSelectedPaymentPlan} />
+            <PaymentPlansManager 
+              onPaymentPlanSelect={setSelectedPaymentPlan}
+            />
           </TabsContent>
         </Tabs>
       </div>

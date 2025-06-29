@@ -33,7 +33,7 @@ export const useProjectStorage = () => {
       {
         name: 'Базовая цена',
         price: 100000,
-        percentage: 100,
+        percentage: 100000,
         date: new Date().toISOString().split('T')[0]
       }
     ],

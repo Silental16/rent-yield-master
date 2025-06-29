@@ -14,6 +14,13 @@ interface ListItem {
   date?: string;
 }
 
+interface FixedFirstItem {
+  name: string;
+  canEditName: boolean;
+  canDelete: boolean;
+  canMove: boolean;
+}
+
 interface DragDropListEditorProps {
   items: ListItem[];
   onItemsChange: (items: ListItem[]) => void;
@@ -23,6 +30,7 @@ interface DragDropListEditorProps {
   addButtonText?: string;
   protectedItems?: string[];
   percentageLabel?: string;
+  fixedFirstItem?: FixedFirstItem;
 }
 
 export const DragDropListEditor = ({
@@ -33,7 +41,8 @@ export const DragDropListEditor = ({
   itemNamePlaceholder = "Название элемента",
   addButtonText = "Добавить элемент",
   protectedItems = [],
-  percentageLabel = "%"
+  percentageLabel = "%",
+  fixedFirstItem
 }: DragDropListEditorProps) => {
   const [newItemName, setNewItemName] = useState('');
   const [newItemPercentage, setNewItemPercentage] = useState(0);
@@ -41,6 +50,11 @@ export const DragDropListEditor = ({
 
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
+
+    // Не позволяем перемещать первый элемент, если он фиксированный
+    if (fixedFirstItem && result.source.index === 0) return;
+    // Не позволяем перемещать элементы на место первого элемента, если он фиксированный
+    if (fixedFirstItem && result.destination.index === 0) return;
 
     const newItems = Array.from(items);
     const [reorderedItem] = newItems.splice(result.source.index, 1);
@@ -77,10 +91,18 @@ export const DragDropListEditor = ({
     if (item && protectedItems.includes(item.name)) {
       return; // Не удаляем защищенные элементы
     }
+    
+    // Не удаляем первый элемент, если он фиксированный
+    const itemIndex = items.findIndex(item => item.id === id);
+    if (fixedFirstItem && itemIndex === 0) {
+      return;
+    }
+    
     onItemsChange(items.filter(item => item.id !== id));
   };
 
   const isProtected = (itemName: string) => protectedItems.includes(itemName);
+  const isFixedFirst = (index: number) => fixedFirstItem && index === 0;
 
   return (
     <div className="space-y-4">
@@ -89,18 +111,31 @@ export const DragDropListEditor = ({
           {(provided) => (
             <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
               {items.map((item, index) => (
-                <Draggable key={item.id} draggableId={item.id} index={index}>
+                <Draggable 
+                  key={item.id} 
+                  draggableId={item.id} 
+                  index={index}
+                  isDragDisabled={isFixedFirst(index)}
+                >
                   {(provided, snapshot) => (
                     <div
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       className={`bg-white border rounded-lg p-4 ${
                         snapshot.isDragging ? 'shadow-lg' : 'shadow-sm'
-                      } ${isProtected(item.name) ? 'border-blue-200 bg-blue-50' : ''}`}
+                      } ${
+                        isProtected(item.name) || isFixedFirst(index) 
+                          ? 'border-blue-200 bg-blue-50' 
+                          : ''
+                      }`}
                     >
                       <div className="grid grid-cols-12 gap-2 items-center">
                         <div {...provided.dragHandleProps} className="col-span-1 flex justify-center">
-                          <GripVertical className="h-4 w-4 text-gray-400" />
+                          <GripVertical 
+                            className={`h-4 w-4 ${
+                              isFixedFirst(index) ? 'text-gray-300' : 'text-gray-400'
+                            }`} 
+                          />
                         </div>
                         
                         <div className={showDate ? "col-span-4" : "col-span-6"}>
@@ -108,8 +143,12 @@ export const DragDropListEditor = ({
                             value={item.name}
                             onChange={(e) => updateItem(item.id, 'name', e.target.value)}
                             placeholder={itemNamePlaceholder}
-                            disabled={isProtected(item.name)}
-                            className={isProtected(item.name) ? 'bg-gray-100' : ''}
+                            disabled={isProtected(item.name) || (fixedFirstItem && index === 0 && !fixedFirstItem.canEditName)}
+                            className={
+                              isProtected(item.name) || (fixedFirstItem && index === 0 && !fixedFirstItem.canEditName)
+                                ? 'bg-gray-100' 
+                                : ''
+                            }
                           />
                         </div>
                         
@@ -128,12 +167,16 @@ export const DragDropListEditor = ({
                               type="date"
                               value={item.date || ''}
                               onChange={(e) => updateItem(item.id, 'date', e.target.value)}
+                              disabled={fixedFirstItem && index === 0}
+                              className={
+                                fixedFirstItem && index === 0 ? 'bg-gray-100' : ''
+                              }
                             />
                           </div>
                         )}
                         
                         <div className={`${showDate ? 'col-span-2' : 'col-span-3'} flex justify-end`}>
-                          {!isProtected(item.name) && (
+                          {!isProtected(item.name) && !isFixedFirst(index) && (
                             <Button
                               variant="outline"
                               size="sm"
