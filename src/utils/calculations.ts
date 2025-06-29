@@ -75,14 +75,7 @@ export class FinancialCalculations {
       const revenueExpensesData = this.calculateRevenueExpenses(grossIncome);
       const revenueExpensesTotal = revenueExpensesData.total;
       
-      const operatingProfit = grossIncome - revenueExpensesTotal;
-      
-      // Расчет расходов из прибыли
-      const profitExpensesTotal = this.data.profitExpenses.reduce((sum, expense) => 
-        sum + (operatingProfit * expense.percentage / 100), 0
-      );
-      
-      // Операционные расходы
+      // Операционные расходы вычитаются из валовой выручки
       let operationalExpenses = 0;
       if (this.data.monthlyExpenses.enabled) {
         operationalExpenses += this.data.monthlyExpenses.value * 12;
@@ -94,15 +87,22 @@ export class FinancialCalculations {
         operationalExpenses += this.data.insurance.value;
       }
       
-      const netProfit = operatingProfit - profitExpensesTotal - operationalExpenses;
+      const operatingProfit = grossIncome - revenueExpensesTotal - operationalExpenses;
+      
+      // Расчет расходов из прибыли
+      const profitExpensesTotal = this.data.profitExpenses.reduce((sum, expense) => 
+        sum + (operatingProfit * expense.percentage / 100), 0
+      );
+      
+      const netProfit = operatingProfit - profitExpensesTotal;
       
       results.push({
         year,
         grossIncome,
         revenueExpenses: revenueExpensesTotal,
+        operationalExpenses,
         operatingProfit,
         profitExpenses: profitExpensesTotal,
-        operationalExpenses,
         netProfit
       });
     }
@@ -329,20 +329,7 @@ export class FinancialCalculations {
       // Расходы из выручки с детализацией
       const revenueExpensesData = this.calculateRevenueExpenses(rentalIncome);
       
-      // Операционная прибыль
-      const operatingProfit = rentalIncome - revenueExpensesData.total;
-      
-      // Расходы из прибыли
-      const profitExpensesBreakdown = [];
-      let totalProfitExpenses = 0;
-      
-      for (const expense of this.data.profitExpenses) {
-        const amount = operatingProfit * (expense.percentage / 100);
-        profitExpensesBreakdown.push({ name: expense.name, amount });
-        totalProfitExpenses += amount;
-      }
-      
-      // Операционные расходы
+      // Операционные расходы (вычитаются из выручки)
       const operationalExpensesBreakdown = [];
       let totalOperationalExpenses = 0;
       
@@ -364,7 +351,20 @@ export class FinancialCalculations {
         }
       }
       
-      const netProfit = operatingProfit - totalProfitExpenses - totalOperationalExpenses;
+      // Операционная прибыль после вычета расходов на выручку и операционных расходов
+      const operatingProfit = rentalIncome - revenueExpensesData.total - totalOperationalExpenses;
+      
+      // Расходы из прибыли
+      const profitExpensesBreakdown = [];
+      let totalProfitExpenses = 0;
+      
+      for (const expense of this.data.profitExpenses) {
+        const amount = operatingProfit * (expense.percentage / 100);
+        profitExpensesBreakdown.push({ name: expense.name, amount });
+        totalProfitExpenses += amount;
+      }
+      
+      const netProfit = operatingProfit - totalProfitExpenses;
       const netCashFlow = investorPayment + netProfit;
       const cumulativeCashFlow = cashFlow.length > 0 ? 
         cashFlow[cashFlow.length - 1].cumulativeCashFlow + netCashFlow : netCashFlow;
@@ -375,11 +375,11 @@ export class FinancialCalculations {
         rentalIncome,
         revenueExpensesTotal: revenueExpensesData.total,
         revenueExpensesBreakdown: revenueExpensesData.breakdown,
+        operationalExpensesTotal: totalOperationalExpenses,
+        operationalExpensesBreakdown,
         operatingProfit,
         profitExpensesTotal: totalProfitExpenses,
         profitExpensesBreakdown,
-        operationalExpensesTotal: totalOperationalExpenses,
-        operationalExpensesBreakdown,
         netProfit,
         netCashFlow,
         cumulativeCashFlow,
