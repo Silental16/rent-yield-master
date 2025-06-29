@@ -581,13 +581,6 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
               <div className="flex gap-2 mt-2">
                 <Button
                   size="sm"
-                  variant={data.paymentPlan.type === 'full' ? 'default' : 'outline'}
-                  onClick={() => updateData({ paymentPlan: { ...data.paymentPlan, type: 'full' } })}
-                >
-                  Полная
-                </Button>
-                <Button
-                  size="sm"
                   variant={data.paymentPlan.type === 'prelaunch' ? 'default' : 'outline'}
                   onClick={() => updateData({ paymentPlan: { ...data.paymentPlan, type: 'prelaunch' } })}
                 >
@@ -659,12 +652,12 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
                     <div className="flex gap-2 mt-2">
                       <Button
                         size="sm"
-                        variant={data.paymentPlan.type === 'construction' ? 'default' : 'outline'}
+                        variant={data.paymentPlan.type === 'prelaunch' ? 'default' : 'outline'}
                         onClick={() => updateData({
-                          paymentPlan: { ...data.paymentPlan, type: 'construction' }
+                          paymentPlan: { ...data.paymentPlan, type: 'prelaunch' }
                         })}
                       >
-                        Строительство
+                        До запуска
                       </Button>
                       <Button
                         size="sm"
