@@ -1,4 +1,3 @@
-
 import { ProjectData } from '@/pages/Index';
 import { PaymentPlan } from '@/types/paymentPlan';
 
@@ -42,15 +41,34 @@ export class FinancialCalculations {
         }
       }
       
-      // Calculate revenue expenses
+      // Calculate revenue breakdown by channels
+      const directBookingsRevenue = grossIncome * (this.data.directBookings / 100);
+      const otaBookingsRevenue = grossIncome * (this.data.otaBookings / 100);
+      
+      // Calculate revenue expenses with dynamic OTA commission
       const totalRevenueExpenses = this.data.revenueExpenses.reduce((sum, expense) => {
-        return sum + (grossIncome * expense.percentage / 100);
+        if (expense.name === 'Комиссия OTA') {
+          // OTA commission applies only to OTA bookings revenue
+          return sum + (otaBookingsRevenue * expense.percentage / 100);
+        } else {
+          // Other expenses apply to gross income
+          return sum + (grossIncome * expense.percentage / 100);
+        }
       }, 0);
       
-      const revenueExpensesBreakdown = this.data.revenueExpenses.map(expense => ({
-        name: expense.name,
-        amount: grossIncome * expense.percentage / 100
-      }));
+      const revenueExpensesBreakdown = this.data.revenueExpenses.map(expense => {
+        let amount;
+        if (expense.name === 'Комиссия OTA') {
+          amount = otaBookingsRevenue * expense.percentage / 100;
+        } else {
+          amount = grossIncome * expense.percentage / 100;
+        }
+        return {
+          name: expense.name,
+          amount: amount,
+          percentage: expense.percentage
+        };
+      });
       
       // Calculate operational expenses
       let operationalExpenses = 0;
@@ -80,6 +98,8 @@ export class FinancialCalculations {
       results.push({
         year,
         grossIncome,
+        directBookingsRevenue,
+        otaBookingsRevenue,
         totalRevenueExpenses,
         revenueExpensesBreakdown,
         operationalExpenses,
@@ -139,17 +159,34 @@ export class FinancialCalculations {
           }
         }
         
-        // Revenue expenses
+        // Revenue breakdown by channels
+        const directBookingsRevenue = rentalIncome * (this.data.directBookings / 100);
+        const otaBookingsRevenue = rentalIncome * (this.data.otaBookings / 100);
+        
+        // Revenue expenses with dynamic OTA commission
         const revenueExpensesTotal = this.data.revenueExpenses.reduce((sum, expense) => {
-          return sum + (rentalIncome * expense.percentage / 100);
+          if (expense.name === 'Комиссия OTA') {
+            return sum + (otaBookingsRevenue * expense.percentage / 100);
+          } else {
+            return sum + (rentalIncome * expense.percentage / 100);
+          }
         }, 0);
 
-        const revenueExpensesBreakdown = this.data.revenueExpenses.map(expense => ({
-          name: expense.name,
-          amount: rentalIncome * expense.percentage / 100
-        }));
+        const revenueExpensesBreakdown = this.data.revenueExpenses.map(expense => {
+          let amount;
+          if (expense.name === 'Комиссия OTA') {
+            amount = otaBookingsRevenue * expense.percentage / 100;
+          } else {
+            amount = rentalIncome * expense.percentage / 100;
+          }
+          return {
+            name: expense.name,
+            amount: amount,
+            percentage: expense.percentage
+          };
+        });
         
-        // Operational expenses (monthly)
+        // Calculate operational expenses (monthly)
         let operationalExpensesTotal = 0;
         const operationalExpensesBreakdown = [];
         
@@ -203,6 +240,8 @@ export class FinancialCalculations {
           monthName: new Date(currentDate).toLocaleDateString('ru-RU', { month: 'short' }),
           investorPayment,
           rentalIncome,
+          directBookingsRevenue,
+          otaBookingsRevenue,
           revenueExpensesTotal,
           revenueExpensesBreakdown,
           operationalExpensesTotal,
