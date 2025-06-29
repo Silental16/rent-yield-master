@@ -22,6 +22,7 @@ interface DragDropListEditorProps {
   itemNamePlaceholder?: string;
   addButtonText?: string;
   protectedItems?: string[];
+  percentageLabel?: string;
 }
 
 export const DragDropListEditor = ({
@@ -31,7 +32,8 @@ export const DragDropListEditor = ({
   showDate = false,
   itemNamePlaceholder = "Название элемента",
   addButtonText = "Добавить элемент",
-  protectedItems = []
+  protectedItems = [],
+  percentageLabel = "%"
 }: DragDropListEditorProps) => {
   const [newItemName, setNewItemName] = useState('');
   const [newItemPercentage, setNewItemPercentage] = useState(0);
@@ -116,7 +118,7 @@ export const DragDropListEditor = ({
                             type="number"
                             value={item.percentage}
                             onChange={(e) => updateItem(item.id, 'percentage', parseFloat(e.target.value))}
-                            placeholder="%"
+                            placeholder={percentageLabel}
                           />
                         </div>
                         
@@ -168,12 +170,12 @@ export const DragDropListEditor = ({
           </div>
           
           <div className="col-span-2">
-            <Label>%</Label>
+            <Label>{percentageLabel}</Label>
             <Input
               type="number"
               value={newItemPercentage}
               onChange={(e) => setNewItemPercentage(parseFloat(e.target.value))}
-              placeholder="Процент"
+              placeholder={percentageLabel === "%" ? "Процент" : "Цена"}
             />
           </div>
           

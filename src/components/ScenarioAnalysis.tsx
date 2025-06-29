@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProjectData } from '@/pages/Index';
 import { FinancialCalculations } from '@/utils/calculations';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 
 interface ScenarioAnalysisProps {
   data: ProjectData;
@@ -38,12 +38,12 @@ export const ScenarioAnalysis = ({ data }: ScenarioAnalysisProps) => {
   // Подготовка данных для графика с двумя столбцами
   const chartData = scenarios.map(scenario => ({
     name: scenario.name,
-    investment: data.cost, // Изначальная стоимость юнита
-    totalValue: scenario.propertyValue + scenario.rentalIncome - scenario.exitCosts // Общая ценность
+    investment: calculations.getUnitPriceAtEntry(),
+    totalValue: scenario.propertyValue + scenario.rentalIncome - scenario.exitCosts
   }));
 
   const scenarioData = scenarios.map(scenario => {
-    const purchasePrice = data.cost;
+    const purchasePrice = calculations.getUnitPriceAtEntry();
     const salePrice = scenario.propertyValue;
     const exitCosts = scenario.exitCosts;
     const saleProfit = salePrice - exitCosts;
@@ -60,6 +60,13 @@ export const ScenarioAnalysis = ({ data }: ScenarioAnalysisProps) => {
       roi
     };
   });
+
+  // Новые данные для графика роста цены юнита
+  const unitPriceGrowthData = calculations.getUnitPriceGrowthData();
+  const yearlyPriceData = unitPriceGrowthData.filter((_, index) => index % 12 === 0).map(item => ({
+    year: `Год ${item.year}`,
+    price: item.price
+  }));
 
   // Анализ чувствительности
   const sensitivityAnalysis = [
@@ -150,6 +157,54 @@ export const ScenarioAnalysis = ({ data }: ScenarioAnalysisProps) => {
 
   return (
     <div className="space-y-6">
+      {/* График роста цены юнита */}
+      <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-xl">
+        <CardHeader>
+          <CardTitle className="text-xl font-semibold">Рост цены юнита</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-80 mb-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={yearlyPriceData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="year" />
+                <YAxis tickFormatter={formatCurrency} />
+                <Tooltip formatter={(value: number) => [formatCurrency(value), 'Цена юнита']} />
+                <Line 
+                  type="monotone" 
+                  dataKey="price" 
+                  stroke="#059669" 
+                  strokeWidth={3}
+                  dot={{ fill: '#059669', strokeWidth: 2, r: 4 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="text-center">
+                <div className="font-semibold text-green-700">Цена при входе</div>
+                <div className="text-lg font-bold text-green-800">
+                  {formatCurrency(calculations.getUnitPriceAtEntry())}
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="font-semibold text-green-700">Цена через 10 лет</div>
+                <div className="text-lg font-bold text-green-800">
+                  {formatCurrency(calculations.getPropertyValueAtYear(10))}
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="font-semibold text-green-700">Рост за 10 лет</div>
+                <div className="text-lg font-bold text-green-800">
+                  +{formatCurrency(calculations.getPropertyValueAtYear(10) - calculations.getUnitPriceAtEntry())}
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Сценарии выхода */}
       <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-xl">
         <CardHeader>
@@ -294,7 +349,7 @@ export const ScenarioAnalysis = ({ data }: ScenarioAnalysisProps) => {
                 <PieChart>
                   <Pie
                     data={[
-                      { name: 'Рост капитала', value: scenarioData[2].propertyValue - data.cost },
+                      { name: 'Рост капитала', value: scenarioData[2].propertyValue - calculations.getUnitPriceAtEntry() },
                       { name: 'Доход от аренды', value: scenarioData[2].rentalIncome },
                       { name: 'Расходы на выход', value: scenarioData[2].exitCosts }
                     ]}
@@ -319,7 +374,7 @@ export const ScenarioAnalysis = ({ data }: ScenarioAnalysisProps) => {
                 <div className="w-4 h-4 bg-blue-500 rounded"></div>
                 <span className="text-sm">Рост капитала</span>
                 <span className="ml-auto font-medium">
-                  {formatCurrency(scenarioData[2].propertyValue - data.cost)}
+                  {formatCurrency(scenarioData[2].propertyValue - calculations.getUnitPriceAtEntry())}
                 </span>
               </div>
               <div className="flex items-center gap-3">

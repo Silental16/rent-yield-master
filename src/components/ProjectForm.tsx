@@ -332,12 +332,13 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
             items={data.pricingStages.map(stage => ({
               id: `${stage.name}-${stage.date}`,
               name: stage.name,
-              percentage: stage.percentage,
+              percentage: stage.price || stage.percentage,
               date: stage.date
             }))}
             onItemsChange={(items) => {
               const newStages = items.map(item => ({
                 name: item.name,
+                price: item.percentage,
                 percentage: item.percentage,
                 date: item.date || new Date().toISOString().split('T')[0]
               }));
@@ -345,9 +346,16 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
             }}
             title="Этапы ценообразования"
             showDate={true}
-            itemNamePlaceholder="Название этапа"
+            itemNamePlaceholder="Название этапа (например: Базовая цена)"
             addButtonText="Добавить этап"
+            percentageLabel="Цена ($)"
           />
+          <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+            <p className="text-sm text-blue-700">
+              Первый этап должен быть "Базовая цена" с указанием начальной стоимости юнита. 
+              Последующие этапы - это повышения цены с указанием новой стоимости и даты вступления в силу.
+            </p>
+          </div>
         </CardContent>
       </Card>
 
@@ -514,7 +522,7 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
             }}
             title="Расходы из прибыли"
             itemNamePlaceholder="Название расхода"
-            addButtonText="Добавить расход"
+            addButtontext="Добавить расход"
           />
         </CardContent>
       </Card>
