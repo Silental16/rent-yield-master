@@ -1,8 +1,6 @@
-import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProjectData } from '@/pages/Index';
 import { FinancialCalculations } from '@/utils/calculations';
-import { PaymentPlanSelector } from './PaymentPlanSelector';
 import { usePaymentPlans } from '@/hooks/usePaymentPlans';
 
 interface DashboardProps {
@@ -10,11 +8,9 @@ interface DashboardProps {
 }
 
 export const Dashboard = ({ data }: DashboardProps) => {
-  const { getDefaultPlan, plans } = usePaymentPlans();
-  const [selectedPlanId, setSelectedPlanId] = useState(getDefaultPlan().id);
-  
-  const selectedPlan = plans.find(plan => plan.id === selectedPlanId) || getDefaultPlan();
-  const calculations = new FinancialCalculations(data, selectedPlan);
+  const { getCurrentPlan } = usePaymentPlans();
+  const currentPlan = getCurrentPlan();
+  const calculations = new FinancialCalculations(data, currentPlan);
   const rentalIncome = calculations.calculateRentalIncome();
   const keyMetrics = calculations.calculateKeyMetrics();
 
@@ -48,11 +44,6 @@ export const Dashboard = ({ data }: DashboardProps) => {
 
   return (
     <div className="space-y-6">
-      <PaymentPlanSelector 
-        selectedPlanId={selectedPlanId}
-        onPlanChange={setSelectedPlanId}
-      />
-
       {/* Ключевые метрики */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 shadow-lg">

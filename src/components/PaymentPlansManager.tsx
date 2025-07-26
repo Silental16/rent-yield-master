@@ -8,33 +8,22 @@ import { PaymentPlan } from '@/types/paymentPlan';
 import { Plus, Edit, Trash2, CreditCard, Building, Calendar } from 'lucide-react';
 
 export const PaymentPlansManager = () => {
-  const { plans, addPlan, updatePlan, deletePlan } = usePaymentPlans();
+  const { plan, updatePlan, resetToDefault } = usePaymentPlans();
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingPlan, setEditingPlan] = useState<PaymentPlan | null>(null);
 
-  const handleCreatePlan = () => {
-    setEditingPlan(null);
+  const handleEditPlan = () => {
     setIsFormOpen(true);
   };
 
-  const handleEditPlan = (plan: PaymentPlan) => {
-    setEditingPlan(plan);
-    setIsFormOpen(true);
-  };
-
-  const handleDeletePlan = (planId: string) => {
-    if (planId === 'default') return; // Prevent deletion of default plan
-    if (confirm('Вы уверены, что хотите удалить этот план оплаты?')) {
-      deletePlan(planId);
+  const handleResetPlan = () => {
+    if (confirm('Вы уверены, что хотите сбросить план оплаты к значениям по умолчанию?')) {
+      resetToDefault();
     }
   };
 
   const handleSubmitPlan = (planData: Omit<PaymentPlan, 'id' | 'createdAt' | 'updatedAt'>) => {
-    if (editingPlan) {
-      updatePlan(editingPlan.id, planData);
-    } else {
-      addPlan(planData);
-    }
+    updatePlan(planData);
+    setIsFormOpen(false);
   };
 
   const getTypeIcon = (type: string) => {
@@ -79,73 +68,45 @@ export const PaymentPlansManager = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">Планы оплаты</h2>
-          <p className="text-gray-600">Управление планами оплаты для клиентов</p>
+          <h2 className="text-2xl font-bold">План оплаты</h2>
+          <p className="text-gray-600">Настройка плана оплаты для проекта</p>
         </div>
-        <Button onClick={handleCreatePlan} className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Создать план
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleResetPlan} variant="outline" className="flex items-center gap-2">
+            Сбросить
+          </Button>
+          <Button onClick={handleEditPlan} className="flex items-center gap-2">
+            <Edit className="w-4 h-4" />
+            Редактировать
+          </Button>
+        </div>
       </div>
 
-      <div className="grid gap-4">
-        {plans.map((plan) => (
-          <Card key={plan.id} className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {getTypeIcon(plan.type)}
-                  <div>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      {plan.name}
-                      {plan.id === 'default' && (
-                        <Badge variant="outline" className="text-xs">
-                          По умолчанию
-                        </Badge>
-                      )}
-                    </CardTitle>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="secondary">{getTypeLabel(plan.type)}</Badge>
-                      <Badge variant="outline">{getDiscountLabel(plan)}</Badge>
-                      <Badge variant={plan.isActive ? 'default' : 'secondary'}>
-                        {plan.isActive ? 'Активен' : 'Неактивен'}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleEditPlan(plan)}
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  {plan.id !== 'default' && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleDeletePlan(plan.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
+      <Card className="hover:shadow-md transition-shadow">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            {getTypeIcon(plan.type)}
+            <div>
+              <CardTitle className="text-lg">
+                {plan.name}
+              </CardTitle>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge variant="secondary">{getTypeLabel(plan.type)}</Badge>
+                <Badge variant="outline">{getDiscountLabel(plan)}</Badge>
               </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">{getConditionsDescription(plan)}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-600">{getConditionsDescription(plan)}</p>
+        </CardContent>
+      </Card>
 
       <PaymentPlanForm
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         onSubmit={handleSubmitPlan}
-        editingPlan={editingPlan}
+        editingPlan={plan}
       />
     </div>
   );

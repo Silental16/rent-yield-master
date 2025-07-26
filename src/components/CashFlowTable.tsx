@@ -1,14 +1,26 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProjectData } from '@/pages/Index';
 import { FinancialCalculations } from '@/utils/calculations';
+import { usePaymentPlans } from '@/hooks/usePaymentPlans';
+import { calculatePaymentPlan } from '@/utils/paymentCalculations';
 
 interface CashFlowTableProps {
   data: ProjectData;
 }
 
 export const CashFlowTable = ({ data }: CashFlowTableProps) => {
-  const calculations = new FinancialCalculations(data);
+  const { getCurrentPlan } = usePaymentPlans();
+  const currentPlan = getCurrentPlan();
+  const calculations = new FinancialCalculations(data, currentPlan);
   const cashFlow = calculations.calculateCashFlow();
+  
+  // Рассчитываем график платежей инвестора
+  const paymentCalculation = calculatePaymentPlan(
+    currentPlan,
+    data.cost,
+    data.entryDate,
+    data.constructionEndDate
+  );
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('ru-RU', {
@@ -74,11 +86,21 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
               <tr className="border-b border-gray-100">
                 <td className="p-3 font-semibold text-red-700 bg-red-50 sticky left-0 z-10 border-r-2 border-gray-200">Платежи инвестора</td>
                 {yearlyData.map((year) => 
-                  year.months.map((month, monthIndex) => (
-                    <td key={`inv-${year.year}-${monthIndex}`} className="text-center p-2 text-red-600">
-                      {month.data.investorPayment !== 0 ? formatCurrency(month.data.investorPayment) : '-'}
-                    </td>
-                  ))
+                  year.months.map((month, monthIndex) => {
+                    const currentDate = new Date(data.entryDate);
+                    currentDate.setMonth(currentDate.getMonth() + (year.year - 1) * 12 + monthIndex);
+                    const currentDateStr = currentDate.toISOString().split('T')[0];
+                    
+                    // Найти платеж на эту дату
+                    const payment = paymentCalculation.schedule.find(p => p.date === currentDateStr);
+                    const amount = payment ? -payment.amount : 0; // Отрицательное значение для платежей
+                    
+                    return (
+                      <td key={`inv-${year.year}-${monthIndex}`} className="text-center p-2 text-red-600">
+                        {amount !== 0 ? formatCurrency(amount) : '-'}
+                      </td>
+                    );
+                  })
                 )}
               </tr>
 
