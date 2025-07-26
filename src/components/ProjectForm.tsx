@@ -63,9 +63,6 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
                     mode="single"
                     selected={entryDate}
                     onSelect={handleEntryDateChange}
-                    disabled={(date) =>
-                      date > new Date()
-                    }
                     initialFocus
                   />
                 </PopoverContent>
@@ -116,15 +113,6 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
                 id="area"
                 value={data.area}
                 onChange={(e) => onChange({ ...data, area: parseFloat(e.target.value) })}
-              />
-            </div>
-            <div>
-              <Label htmlFor="cost">Стоимость ($)</Label>
-              <Input
-                type="number"
-                id="cost"
-                value={data.cost}
-                onChange={(e) => onChange({ ...data, cost: parseFloat(e.target.value) })}
               />
             </div>
           </div>
