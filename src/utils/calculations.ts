@@ -4,7 +4,7 @@ import { PaymentPlan } from '@/types/paymentPlan';
 export class FinancialCalculations {
   constructor(private data: ProjectData, private paymentPlan?: PaymentPlan) {}
 
-  // Новый метод для расчета цены юнита на момент входа инвестора
+  // Метод для расчета цены юнита на момент входа инвестора
   getUnitPriceAtEntry(): number {
     const entryDate = new Date(this.data.entryDate);
     const pricingStages = this.data.pricingStages;
@@ -15,12 +15,33 @@ export class FinancialCalculations {
     );
     
     let currentPrice = this.data.cost; // Fallback to original cost
+    let lastStageDate = entryDate;
+    let lastStagePrice = this.data.cost;
     
-    // Находим актуальную цену на дату входа
+    // Проверяем, есть ли этап ценообразования для даты входа
+    let foundStagePrice = false;
     for (const stage of sortedStages) {
       const stageDate = new Date(stage.date);
-      if (stageDate <= entryDate && stage.price) {
+      if (entryDate >= stageDate) {
         currentPrice = stage.price;
+        lastStagePrice = stage.price;
+        lastStageDate = stageDate;
+        foundStagePrice = true;
+      }
+    }
+    
+    // Если есть этапы и дата входа после последнего этапа, применяем рост
+    if (sortedStages.length > 0 && foundStagePrice) {
+      const lastStage = sortedStages[sortedStages.length - 1];
+      const lastStageDateTime = new Date(lastStage.date);
+      
+      if (entryDate > lastStageDateTime) {
+        // Количество месяцев после последнего этапа
+        const monthsAfterLastStage = (entryDate.getFullYear() - lastStageDateTime.getFullYear()) * 12 
+          + (entryDate.getMonth() - lastStageDateTime.getMonth());
+        
+        // Применяем экспоненциальный рост: P[n] = lastStagePrice × (1 + propertyGrowth)^(n/12)
+        currentPrice = lastStage.price * Math.pow(1 + this.data.propertyGrowth / 100, monthsAfterLastStage / 12);
       }
     }
     
