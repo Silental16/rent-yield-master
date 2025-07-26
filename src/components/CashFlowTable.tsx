@@ -87,13 +87,9 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
                 <td className="p-3 font-semibold text-red-700 bg-red-50 sticky left-0 z-10 border-r-2 border-gray-200">Платежи инвестора</td>
                 {yearlyData.map((year) => 
                   year.months.map((month, monthIndex) => {
-                    const currentDate = new Date(data.entryDate);
-                    currentDate.setMonth(currentDate.getMonth() + (year.year - 1) * 12 + monthIndex);
-                    const currentDateStr = currentDate.toISOString().split('T')[0];
-                    
-                    // Найти платеж на эту дату
-                    const payment = paymentCalculation.schedule.find(p => p.date === currentDateStr);
-                    const amount = payment ? -payment.amount : 0; // Отрицательное значение для платежей
+                    // Используем индекс из cash flow data, который уже правильно рассчитан относительно даты входа
+                    const monthData = month.data;
+                    const amount = monthData.investorPayment; // Уже отрицательное значение
                     
                     return (
                       <td key={`inv-${year.year}-${monthIndex}`} className="text-center p-2 text-red-600">
