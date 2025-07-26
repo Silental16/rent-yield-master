@@ -272,6 +272,23 @@ export class FinancialCalculations {
           investorPayment = -monthPayment.amount; // Negative for outgoing payment
         }
         
+        // Additional payments at launch (if construction is complete this month)
+        let additionalPayments = 0;
+        if (isConstructionComplete && 
+            currentDate.getFullYear() === constructionEndDate.getFullYear() && 
+            currentDate.getMonth() === constructionEndDate.getMonth() &&
+            this.paymentPlan?.additionalPayments) {
+          
+          additionalPayments = this.paymentPlan.additionalPayments.reduce((sum, payment) => {
+            if (payment.type === 'percentage') {
+              return sum + (initialCost * (payment.value / 100));
+            } else {
+              return sum + payment.value;
+            }
+          }, 0);
+          additionalPayments = -additionalPayments; // Negative for outgoing payment
+        }
+        
         // Rental income
         let rentalIncome = 0;
         if (isConstructionComplete) {
@@ -358,7 +375,7 @@ export class FinancialCalculations {
         }));
         
         // Net profit
-        const netProfit = investorPayment + operatingProfit - profitExpensesTotal;
+        const netProfit = investorPayment + additionalPayments + operatingProfit - profitExpensesTotal;
         
         cumulativeCashFlow += netProfit;
         

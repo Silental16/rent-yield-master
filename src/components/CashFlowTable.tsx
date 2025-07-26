@@ -100,6 +100,46 @@ export const CashFlowTable = ({ data }: CashFlowTableProps) => {
                 )}
               </tr>
 
+              {/* 1.1. Дополнительные платежи при запуске */}
+              {currentPlan?.additionalPayments && currentPlan.additionalPayments.length > 0 && (
+                <tr className="border-b border-gray-50">
+                  <td className="p-3 pl-8 text-sm text-gray-600 sticky left-0 z-10 bg-white border-r-2 border-gray-200">
+                    - Дополнительные платежи при запуске
+                  </td>
+                  {yearlyData.map((year) => 
+                    year.months.map((month, monthIndex) => {
+                      // Check if this is the launch month
+                      const constructionEndDate = new Date(data.constructionEndDate);
+                      const entryDate = new Date(data.entryDate);
+                      const currentDate = new Date(entryDate);
+                      currentDate.setFullYear(currentDate.getFullYear() + (year.year - 1));
+                      currentDate.setMonth(entryDate.getMonth() + monthIndex);
+                      
+                      const isLaunchMonth = currentDate.getFullYear() === constructionEndDate.getFullYear() && 
+                                           currentDate.getMonth() === constructionEndDate.getMonth();
+                      
+                      let additionalAmount = 0;
+                      if (isLaunchMonth && currentPlan.additionalPayments) {
+                        const unitPrice = calculations.getUnitPriceAtEntry();
+                        additionalAmount = currentPlan.additionalPayments.reduce((sum, payment) => {
+                          if (payment.type === 'percentage') {
+                            return sum + (unitPrice * (payment.value / 100));
+                          } else {
+                            return sum + payment.value;
+                          }
+                        }, 0);
+                      }
+                      
+                      return (
+                        <td key={`add-pay-${year.year}-${monthIndex}`} className="text-center p-2 text-xs text-red-500">
+                          {additionalAmount > 0 ? `-${formatCurrency(additionalAmount)}` : '-'}
+                        </td>
+                      );
+                    })
+                  )}
+                </tr>
+              )}
+
               {/* 2. Выручка от аренды */}
               <tr className="border-b border-gray-100">
                 <td className="p-3 font-semibold text-green-700 bg-green-50 sticky left-0 z-10 border-r-2 border-gray-200">Выручка от аренды</td>
