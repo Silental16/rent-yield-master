@@ -27,13 +27,28 @@ export class FinancialCalculations {
     return currentPrice;
   }
 
-  // Новый метод для получения данных графика роста цены юнита
+  // Метод для получения данных графика роста цены юнита с учетом этапов ценообразования
   getUnitPriceGrowthData(): Array<{month: number; year: number; price: number; monthName: string}> {
     const entryDate = new Date(this.data.entryDate);
-    const startingPrice = this.getUnitPriceAtEntry();
-    const monthlyGrowthRate = this.data.propertyGrowth / 100 / 12; // Convert annual to monthly rate
+    const pricingStages = this.data.pricingStages;
+    
+    // Сортируем этапы по дате
+    const sortedStages = [...pricingStages].sort((a, b) => 
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+    
+    // Найти последний этап ценообразования
+    let lastStagePrice = this.data.cost;
+    let lastStageDate = entryDate;
+    
+    if (sortedStages.length > 0) {
+      const lastStage = sortedStages[sortedStages.length - 1];
+      lastStagePrice = lastStage.price;
+      lastStageDate = new Date(lastStage.date);
+    }
     
     const data = [];
+    const monthlyGrowthMultiplier = Math.pow(1 + this.data.propertyGrowth / 100, 1/12); // k = (1.12)^(1/12)
     
     for (let year = 0; year < 10; year++) {
       for (let month = 0; month < 12; month++) {
@@ -42,8 +57,27 @@ export class FinancialCalculations {
         currentDate.setFullYear(currentDate.getFullYear() + year);
         currentDate.setMonth(currentDate.getMonth() + month);
         
-        // Calculate compound growth
-        const price = startingPrice * Math.pow(1 + monthlyGrowthRate, monthIndex);
+        let price = this.data.cost; // Изначальная цена по умолчанию
+        
+        // Проверяем, есть ли этап ценообразования для этой даты
+        let foundStagePrice = false;
+        for (const stage of sortedStages) {
+          const stageDate = new Date(stage.date);
+          if (currentDate >= stageDate) {
+            price = stage.price;
+            foundStagePrice = true;
+          }
+        }
+        
+        // Если дата после последнего этапа ценообразования, применяем рост
+        if (currentDate > lastStageDate && foundStagePrice) {
+          // Количество месяцев после последнего этапа
+          const monthsAfterLastStage = (currentDate.getFullYear() - lastStageDate.getFullYear()) * 12 
+            + (currentDate.getMonth() - lastStageDate.getMonth());
+          
+          // Применяем экспоненциальный рост: P[n] = lastStagePrice × (1.12)^(n/12)
+          price = lastStagePrice * Math.pow(1 + this.data.propertyGrowth / 100, monthsAfterLastStage / 12);
+        }
         
         data.push({
           month: monthIndex + 1,

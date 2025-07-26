@@ -40,7 +40,7 @@ export interface ProjectData {
   // Этапы ценообразования
   pricingStages: Array<{
     name: string;
-    percentage: number;
+    price: number;
     date: string;
   }>;
   
@@ -95,9 +95,9 @@ const Index = () => {
     propertyGrowth: 6,
     leaseholdTerm: 25,
     pricingStages: [
-      { name: 'Pre-sale', percentage: 100, date: '2024-01-01' },
-      { name: 'Sale', percentage: 120, date: '2024-06-01' },
-      { name: 'Release', percentage: 150, date: '2024-09-01' }
+      { name: 'Pre-sale', price: 100000, date: '2024-01-01' },
+      { name: 'Sale', price: 120000, date: '2024-06-01' },
+      { name: 'Release', price: 150000, date: '2024-09-01' }
     ],
     variableCosts: 3,
     agentCommission: 5,
