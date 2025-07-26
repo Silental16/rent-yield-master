@@ -367,6 +367,47 @@ export class FinancialCalculations {
   }
 
   getPropertyValueAtYear(year: number): number {
+    // Если year = 0, это означает "после строительства", используем дату завершения строительства
+    if (year === 0) {
+      const constructionEndDate = new Date(this.data.constructionEndDate);
+      const pricingStages = this.data.pricingStages;
+      
+      // Сортируем этапы по дате
+      const sortedStages = [...pricingStages].sort((a, b) => 
+        new Date(a.date).getTime() - new Date(b.date).getTime()
+      );
+      
+      let currentPrice = this.data.cost;
+      let foundStagePrice = false;
+      
+      // Проверяем, есть ли этап ценообразования для даты завершения строительства
+      for (const stage of sortedStages) {
+        const stageDate = new Date(stage.date);
+        if (constructionEndDate >= stageDate) {
+          currentPrice = stage.price;
+          foundStagePrice = true;
+        }
+      }
+      
+      // Если есть этапы и дата завершения строительства после последнего этапа, применяем рост
+      if (sortedStages.length > 0 && foundStagePrice) {
+        const lastStage = sortedStages[sortedStages.length - 1];
+        const lastStageDateTime = new Date(lastStage.date);
+        
+        if (constructionEndDate > lastStageDateTime) {
+          // Количество месяцев после последнего этапа
+          const monthsAfterLastStage = (constructionEndDate.getFullYear() - lastStageDateTime.getFullYear()) * 12 
+            + (constructionEndDate.getMonth() - lastStageDateTime.getMonth());
+          
+          // Применяем экспоненциальный рост
+          currentPrice = lastStage.price * Math.pow(1 + this.data.propertyGrowth / 100, monthsAfterLastStage / 12);
+        }
+      }
+      
+      return currentPrice;
+    }
+    
+    // Для остальных лет считаем от даты входа в проект
     let initialCost = this.getUnitPriceAtEntry();
     if (this.paymentPlan && this.paymentPlan.discount.value > 0) {
       if (this.paymentPlan.discount.type === 'percentage') {
