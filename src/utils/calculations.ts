@@ -529,6 +529,8 @@ export class FinancialCalculations {
 
   calculateKeyMetrics() {
     const rentalIncome = this.calculateRentalIncome();
+    const entryDate = new Date(this.data.entryDate);
+    const constructionEndDate = new Date(this.data.constructionEndDate);
     
     // Calculate initial investment based on entry date and payment plan
     let initialInvestment = this.getUnitPriceAtEntry();
@@ -540,48 +542,67 @@ export class FinancialCalculations {
       }
     }
     
+    // Calculate years from entry to construction end (investment period without income)
+    const yearsFromEntryToConstEnd = Math.max(0, (constructionEndDate.getTime() - entryDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+    
     const totalNetProfit10Years = rentalIncome.reduce((sum, year) => sum + year.netProfit, 0);
     const roi10Year = (totalNetProfit10Years / initialInvestment) * 100;
     const averageAnnualReturn = roi10Year / 10;
     
-    // Calculate payback period
+    // Calculate payback period accounting for entry date
     let cumulativeProfit = 0;
-    let paybackPeriod = 0;
+    let paybackPeriod = yearsFromEntryToConstEnd; // Start from construction completion
     
     for (const year of rentalIncome) {
       cumulativeProfit += year.netProfit;
-      if (cumulativeProfit >= initialInvestment && paybackPeriod === 0) {
+      if (cumulativeProfit >= initialInvestment && paybackPeriod === yearsFromEntryToConstEnd) {
         const previousCumulative = cumulativeProfit - year.netProfit;
         const remainingAmount = initialInvestment - previousCumulative;
-        const monthsIntoYear = (remainingAmount / year.netProfit) * 12;
-        paybackPeriod = year.year - 1 + (monthsIntoYear / 12);
+        const monthsIntoYear = year.netProfit > 0 ? (remainingAmount / year.netProfit) * 12 : 12;
+        paybackPeriod = yearsFromEntryToConstEnd + year.year - 1 + (monthsIntoYear / 12);
         break;
       }
     }
     
-    // Calculate NPV
+    // Calculate NPV accounting for investment timing
     let npv = 0;
     if (this.data.npvEnabled) {
       const discountRate = this.data.discountRate / 100;
-      npv = -initialInvestment;
+      npv = -initialInvestment; // Investment happens at entry date (time 0)
       
       for (const year of rentalIncome) {
-        npv += year.netProfit / Math.pow(1 + discountRate, year.year);
+        // Discount from the actual time when cash flow occurs (entry date + years to construction end + rental year)
+        const timeFromEntry = yearsFromEntryToConstEnd + year.year;
+        npv += year.netProfit / Math.pow(1 + discountRate, timeFromEntry);
       }
       
-      // Add terminal value (property appreciation)
+      // Add terminal value (property appreciation) - occurs at end of 10-year rental period
       const terminalValue = initialInvestment * Math.pow(1 + this.data.propertyGrowth / 100, 10);
-      npv += terminalValue / Math.pow(1 + discountRate, 10);
+      const terminalValueTime = yearsFromEntryToConstEnd + 10;
+      npv += terminalValue / Math.pow(1 + discountRate, terminalValueTime);
     }
     
-    // Calculate IRR
+    // Calculate IRR accounting for investment timing
     let irr = 0;
     if (this.data.irrEnabled) {
-      const cashFlows = [-initialInvestment, ...rentalIncome.map(year => year.netProfit)];
+      // Create cash flow array starting from entry date
+      const totalYears = Math.ceil(yearsFromEntryToConstEnd + 10);
+      const cashFlows = new Array(totalYears + 1).fill(0);
+      cashFlows[0] = -initialInvestment; // Investment at entry date
+      
+      // Add rental income cash flows starting from construction end
+      const constructionEndYearIndex = Math.ceil(yearsFromEntryToConstEnd);
+      rentalIncome.forEach((year, index) => {
+        const cashFlowIndex = constructionEndYearIndex + index;
+        if (cashFlowIndex < cashFlows.length) {
+          cashFlows[cashFlowIndex] += year.netProfit;
+        }
+      });
       
       // Add terminal value to last cash flow
       const terminalValue = initialInvestment * Math.pow(1 + this.data.propertyGrowth / 100, 10);
-      cashFlows[cashFlows.length - 1] += terminalValue;
+      const lastIndex = Math.min(constructionEndYearIndex + 9, cashFlows.length - 1);
+      cashFlows[lastIndex] += terminalValue;
       
       irr = this.calculateIRR(cashFlows) * 100;
     }
