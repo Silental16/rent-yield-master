@@ -16,68 +16,35 @@ const createDefaultPlan = (): PaymentPlan => ({
 });
 
 export const usePaymentPlans = () => {
-  const [plans, setPlans] = useState<PaymentPlan[]>([]);
+  const [plan, setPlan] = useState<PaymentPlan>(createDefaultPlan());
 
   useEffect(() => {
-    const stored = localStorage.getItem('payment-plans');
-    let loadedPlans: PaymentPlan[] = [];
-    
+    const stored = localStorage.getItem('payment-plan');
     if (stored) {
       try {
-        loadedPlans = JSON.parse(stored);
+        const loadedPlan = JSON.parse(stored);
+        setPlan(loadedPlan);
       } catch (error) {
-        console.error('Error loading payment plans:', error);
+        console.error('Error loading payment plan:', error);
+        setPlan(createDefaultPlan());
       }
     }
-
-    // Ensure default plan always exists
-    const defaultPlan = loadedPlans.find(plan => plan.id === 'default');
-    if (!defaultPlan) {
-      loadedPlans.unshift(createDefaultPlan());
-    }
-
-    setPlans(loadedPlans);
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('payment-plans', JSON.stringify(plans));
-  }, [plans]);
+    localStorage.setItem('payment-plan', JSON.stringify(plan));
+  }, [plan]);
 
-  const addPlan = (plan: Omit<PaymentPlan, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newPlan: PaymentPlan = {
-      ...plan,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
+  const updatePlan = (updates: Partial<PaymentPlan>) => {
+    setPlan(prev => ({
+      ...prev,
+      ...updates,
       updatedAt: new Date().toISOString()
-    };
-    setPlans(prev => [...prev, newPlan]);
-    return newPlan.id;
+    }));
   };
-
-  const updatePlan = (id: string, updates: Partial<PaymentPlan>) => {
-    setPlans(prev => prev.map(plan => 
-      plan.id === id 
-        ? { ...plan, ...updates, updatedAt: new Date().toISOString() }
-        : plan
-    ));
-  };
-
-  const deletePlan = (id: string) => {
-    // Prevent deletion of default plan
-    if (id === 'default') return;
-    setPlans(prev => prev.filter(plan => plan.id !== id));
-  };
-
-  const getActivePlans = () => plans.filter(plan => plan.isActive);
-
-  const getDefaultPlan = () => plans.find(plan => plan.id === 'default') || createDefaultPlan();
 
   return {
-    plans,
-    addPlan,
-    updatePlan,
-    deletePlan,
-    getActivePlans,
-    getDefaultPlan
+    plan,
+    updatePlan
   };
 };
