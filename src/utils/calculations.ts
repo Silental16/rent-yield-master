@@ -1,5 +1,6 @@
 import { ProjectData } from '@/pages/Index';
 import { PaymentPlan } from '@/types/paymentPlan';
+import { calculatePaymentPlan } from './paymentCalculations';
 
 export class FinancialCalculations {
   constructor(private data: ProjectData, private paymentPlan?: PaymentPlan) {}
@@ -225,14 +226,22 @@ export class FinancialCalculations {
     const entryDate = new Date(this.data.entryDate);
     const constructionEndDate = new Date(this.data.constructionEndDate);
     
-    // Calculate initial cost based on entry date and payment plan discount
+    // Calculate payment plan schedule if payment plan is provided
+    let paymentSchedule: Array<{date: string; amount: number}> = [];
     let initialCost = this.getUnitPriceAtEntry();
-    if (this.paymentPlan && this.paymentPlan.discount.value > 0) {
-      if (this.paymentPlan.discount.type === 'percentage') {
-        initialCost = initialCost * (1 - this.paymentPlan.discount.value / 100);
-      } else {
-        initialCost = initialCost - this.paymentPlan.discount.value;
-      }
+    
+    if (this.paymentPlan) {
+      const paymentCalculation = calculatePaymentPlan(
+        this.paymentPlan,
+        initialCost,
+        this.data.entryDate,
+        this.data.constructionEndDate
+      );
+      paymentSchedule = paymentCalculation.schedule.map(item => ({
+        date: item.date,
+        amount: item.amount
+      }));
+      initialCost = paymentCalculation.totalAmount;
     }
 
     let cumulativeCashFlow = 0;
@@ -246,10 +255,21 @@ export class FinancialCalculations {
         
         const isConstructionComplete = currentDate >= constructionEndDate;
         
-        // Investment payment (simplified - assuming full payment at entry)
+        // Investment payment - check if there's a payment scheduled for this month
         let investorPayment = 0;
-        if (monthIndex === 0) {
-          investorPayment = -initialCost;
+        const currentDateStr = currentDate.toISOString().split('T')[0];
+        
+        // Find payment for current month (compare by year and month only)
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth();
+        
+        const monthPayment = paymentSchedule.find(payment => {
+          const paymentDate = new Date(payment.date);
+          return paymentDate.getFullYear() === currentYear && paymentDate.getMonth() === currentMonth;
+        });
+        
+        if (monthPayment) {
+          investorPayment = -monthPayment.amount; // Negative for outgoing payment
         }
         
         // Rental income
