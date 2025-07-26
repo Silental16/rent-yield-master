@@ -14,16 +14,25 @@ export interface PaymentPlan {
   // For fixed type
   downPaymentPercentFixed?: number;
   installmentMonths?: number;
+  // Additional payments at launch
+  additionalPayments?: AdditionalPayment[];
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface AdditionalPayment {
+  id: string;
+  name: string;
+  type: 'percentage' | 'fixed';
+  value: number;
 }
 
 export interface PaymentScheduleItem {
   date: string;
   amount: number;
   description: string;
-  type: 'down' | 'monthly' | 'launch';
+  type: 'down' | 'monthly' | 'launch' | 'additional';
 }
 
 export interface PaymentCalculation {

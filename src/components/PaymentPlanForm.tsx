@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +7,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { PaymentPlan } from '@/types/paymentPlan';
+import { AdditionalPaymentsManager } from './AdditionalPaymentsManager';
 import { AlertCircle } from 'lucide-react';
 
 interface PaymentPlanFormProps {
@@ -27,6 +27,7 @@ export const PaymentPlanForm = ({ isOpen, onClose, onSubmit, editingPlan }: Paym
     constructionPaymentPercent: 50,
     downPaymentPercentFixed: 30,
     installmentMonths: 12,
+    additionalPayments: [] as any[],
     isActive: true
   });
 
@@ -43,6 +44,7 @@ export const PaymentPlanForm = ({ isOpen, onClose, onSubmit, editingPlan }: Paym
         constructionPaymentPercent: editingPlan.constructionPaymentPercent || 50,
         downPaymentPercentFixed: editingPlan.downPaymentPercentFixed || 30,
         installmentMonths: editingPlan.installmentMonths || 12,
+        additionalPayments: editingPlan.additionalPayments || [],
         isActive: editingPlan.isActive
       });
     } else {
@@ -55,6 +57,7 @@ export const PaymentPlanForm = ({ isOpen, onClose, onSubmit, editingPlan }: Paym
         constructionPaymentPercent: 50,
         downPaymentPercentFixed: 30,
         installmentMonths: 12,
+        additionalPayments: [],
         isActive: true
       });
     }
@@ -102,6 +105,7 @@ export const PaymentPlanForm = ({ isOpen, onClose, onSubmit, editingPlan }: Paym
         type: formData.discountType,
         value: formData.discountValue
       },
+      additionalPayments: formData.additionalPayments,
       isActive: formData.isActive
     };
 
@@ -122,7 +126,7 @@ export const PaymentPlanForm = ({ isOpen, onClose, onSubmit, editingPlan }: Paym
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {editingPlan ? 'Редактировать план оплаты' : 'Создать план оплаты'}
@@ -299,6 +303,13 @@ export const PaymentPlanForm = ({ isOpen, onClose, onSubmit, editingPlan }: Paym
               </div>
             </div>
           )}
+
+          <div className="border-t pt-6">
+            <AdditionalPaymentsManager 
+              payments={formData.additionalPayments}
+              onChange={(payments) => setFormData({ ...formData, additionalPayments: payments })}
+            />
+          </div>
 
           <div className="flex gap-3 pt-4">
             <Button type="submit" className="flex-1">

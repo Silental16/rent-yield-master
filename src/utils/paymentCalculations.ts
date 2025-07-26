@@ -1,4 +1,3 @@
-
 import { PaymentPlan, PaymentCalculation, PaymentScheduleItem } from '@/types/paymentPlan';
 
 export const calculatePaymentPlan = (
@@ -103,6 +102,25 @@ export const calculatePaymentPlan = (
         });
       }
       break;
+  }
+
+  // Add additional payments at launch
+  if (plan.additionalPayments && plan.additionalPayments.length > 0) {
+    plan.additionalPayments.forEach(additionalPayment => {
+      let amount = 0;
+      if (additionalPayment.type === 'percentage') {
+        amount = discountedPrice * (additionalPayment.value / 100);
+      } else {
+        amount = additionalPayment.value;
+      }
+
+      schedule.push({
+        date: constructionEndDate,
+        amount,
+        description: additionalPayment.name,
+        type: 'additional'
+      });
+    });
   }
 
   const totalAmount = schedule.reduce((sum, item) => sum + item.amount, 0);

@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { PaymentPlanForm } from './PaymentPlanForm';
 import { usePaymentPlans } from '@/hooks/usePaymentPlans';
 import { PaymentPlan } from '@/types/paymentPlan';
-import { Plus, Edit, Trash2, CreditCard, Building, Calendar } from 'lucide-react';
+import { Edit, CreditCard, Building, Calendar, Plus } from 'lucide-react';
 
 export const PaymentPlansManager = () => {
   const { plan, updatePlan, resetToDefault } = usePaymentPlans();
@@ -64,6 +64,31 @@ export const PaymentPlansManager = () => {
     }
   };
 
+  const getAdditionalPaymentsDescription = (plan: PaymentPlan) => {
+    if (!plan.additionalPayments || plan.additionalPayments.length === 0) {
+      return null;
+    }
+
+    const fixedPayments = plan.additionalPayments.filter(p => p.type === 'fixed');
+    const percentagePayments = plan.additionalPayments.filter(p => p.type === 'percentage');
+    
+    const fixedTotal = fixedPayments.reduce((sum, p) => sum + p.value, 0);
+    const percentageTotal = percentagePayments.reduce((sum, p) => sum + p.value, 0);
+
+    let description = 'Дополнительные платежи при запуске: ';
+    const parts = [];
+    
+    if (fixedTotal > 0) {
+      parts.push(`$${fixedTotal.toLocaleString()}`);
+    }
+    
+    if (percentageTotal > 0) {
+      parts.push(`${percentageTotal}% от стоимости`);
+    }
+
+    return description + parts.join(' + ');
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -93,12 +118,23 @@ export const PaymentPlansManager = () => {
               <div className="flex items-center gap-2 mt-1">
                 <Badge variant="secondary">{getTypeLabel(plan.type)}</Badge>
                 <Badge variant="outline">{getDiscountLabel(plan)}</Badge>
+                {plan.additionalPayments && plan.additionalPayments.length > 0 && (
+                  <Badge variant="outline" className="bg-blue-50">
+                    <Plus className="w-3 h-3 mr-1" />
+                    {plan.additionalPayments.length} доп. платеж{plan.additionalPayments.length > 1 ? 'а' : ''}
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
           <p className="text-gray-600">{getConditionsDescription(plan)}</p>
+          {getAdditionalPaymentsDescription(plan) && (
+            <p className="text-sm text-blue-600 font-medium">
+              {getAdditionalPaymentsDescription(plan)}
+            </p>
+          )}
         </CardContent>
       </Card>
 
