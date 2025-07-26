@@ -377,6 +377,7 @@ export class FinancialCalculations {
         // Net profit
         const netProfit = investorPayment + additionalPayments + operatingProfit - profitExpensesTotal;
         
+        // Update cumulative cash flow
         cumulativeCashFlow += netProfit;
         
         results.push({
