@@ -5,19 +5,36 @@ import { Badge } from '@/components/ui/badge';
 import { PaymentPlanForm } from './PaymentPlanForm';
 import { usePaymentPlans } from '@/hooks/usePaymentPlans';
 import { PaymentPlan } from '@/types/paymentPlan';
-import { Edit, CreditCard, Building, Calendar } from 'lucide-react';
+import { Plus, Edit, Trash2, CreditCard, Building, Calendar } from 'lucide-react';
 
 export const PaymentPlansManager = () => {
-  const { plan, updatePlan } = usePaymentPlans();
+  const { plans, addPlan, updatePlan, deletePlan } = usePaymentPlans();
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingPlan, setEditingPlan] = useState<PaymentPlan | null>(null);
 
-  const handleEditPlan = () => {
+  const handleCreatePlan = () => {
+    setEditingPlan(null);
     setIsFormOpen(true);
   };
 
+  const handleEditPlan = (plan: PaymentPlan) => {
+    setEditingPlan(plan);
+    setIsFormOpen(true);
+  };
+
+  const handleDeletePlan = (planId: string) => {
+    if (planId === 'default') return; // Prevent deletion of default plan
+    if (confirm('Вы уверены, что хотите удалить этот план оплаты?')) {
+      deletePlan(planId);
+    }
+  };
+
   const handleSubmitPlan = (planData: Omit<PaymentPlan, 'id' | 'createdAt' | 'updatedAt'>) => {
-    updatePlan(planData);
-    setIsFormOpen(false);
+    if (editingPlan) {
+      updatePlan(editingPlan.id, planData);
+    } else {
+      addPlan(planData);
+    }
   };
 
   const getTypeIcon = (type: string) => {
@@ -50,9 +67,9 @@ export const PaymentPlansManager = () => {
       case 'full':
         return 'Единовременная оплата при входе в проект';
       case 'construction':
-        return `${plan.downPaymentPercent || 0}% при входе, ${plan.constructionPaymentPercent || 0}% во время стройки, ${plan.launchPaymentPercent || 0}% при запуске`;
+        return `${plan.downPaymentPercent}% при входе, ${plan.constructionPaymentPercent}% во время стройки, ${plan.launchPaymentPercent}% при запуске`;
       case 'fixed':
-        return `${plan.downPaymentPercentFixed || 0}% при входе, затем ${plan.installmentMonths || 0} месяцев рассрочки`;
+        return `${plan.downPaymentPercentFixed}% при входе, затем ${plan.installmentMonths} месяцев рассрочки`;
       default:
         return '';
     }
@@ -62,38 +79,73 @@ export const PaymentPlansManager = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">План оплаты</h2>
-          <p className="text-gray-600">Настройка плана оплаты для проекта</p>
+          <h2 className="text-2xl font-bold">Планы оплаты</h2>
+          <p className="text-gray-600">Управление планами оплаты для клиентов</p>
         </div>
-        <Button onClick={handleEditPlan} className="flex items-center gap-2">
-          <Edit className="w-4 h-4" />
-          Редактировать
+        <Button onClick={handleCreatePlan} className="flex items-center gap-2">
+          <Plus className="w-4 h-4" />
+          Создать план
         </Button>
       </div>
 
-      <Card className="hover:shadow-md transition-shadow">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            {getTypeIcon(plan.type)}
-            <div>
-              <CardTitle className="text-lg">{plan.name}</CardTitle>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant="secondary">{getTypeLabel(plan.type)}</Badge>
-                <Badge variant="outline">{getDiscountLabel(plan)}</Badge>
+      <div className="grid gap-4">
+        {plans.map((plan) => (
+          <Card key={plan.id} className="hover:shadow-md transition-shadow">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {getTypeIcon(plan.type)}
+                  <div>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      {plan.name}
+                      {plan.id === 'default' && (
+                        <Badge variant="outline" className="text-xs">
+                          По умолчанию
+                        </Badge>
+                      )}
+                    </CardTitle>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="secondary">{getTypeLabel(plan.type)}</Badge>
+                      <Badge variant="outline">{getDiscountLabel(plan)}</Badge>
+                      <Badge variant={plan.isActive ? 'default' : 'secondary'}>
+                        {plan.isActive ? 'Активен' : 'Неактивен'}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleEditPlan(plan)}
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  {plan.id !== 'default' && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleDeletePlan(plan.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-600">{getConditionsDescription(plan)}</p>
-        </CardContent>
-      </Card>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">{getConditionsDescription(plan)}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
       <PaymentPlanForm
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         onSubmit={handleSubmitPlan}
-        editingPlan={plan}
+        editingPlan={editingPlan}
       />
     </div>
   );
