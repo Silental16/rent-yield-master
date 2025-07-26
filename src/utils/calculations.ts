@@ -274,9 +274,11 @@ export class FinancialCalculations {
         
         // Additional payments at launch (if construction is complete this month)
         let additionalPayments = 0;
-        if (isConstructionComplete && 
-            currentDate.getFullYear() === constructionEndDate.getFullYear() && 
-            currentDate.getMonth() === constructionEndDate.getMonth() &&
+        const constructionEndYear = constructionEndDate.getFullYear();
+        const constructionEndMonth = constructionEndDate.getMonth();
+        
+        if (currentYear === constructionEndYear && 
+            currentMonth === constructionEndMonth &&
             this.paymentPlan?.additionalPayments) {
           
           additionalPayments = this.paymentPlan.additionalPayments.reduce((sum, payment) => {
