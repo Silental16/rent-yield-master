@@ -39,7 +39,7 @@ export const ProjectManager = ({
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ru-RU', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -55,16 +55,16 @@ export const ProjectManager = ({
           <DialogTrigger asChild>
             <Button variant="outline" className="flex items-center gap-2">
               <Plus className="w-4 h-4" />
-              Сохранить расчет
+              Save Calculation
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Сохранить текущий расчет</DialogTitle>
+              <DialogTitle>Save Current Calculation</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <Input
-                placeholder="Название расчета"
+                placeholder="Calculation name"
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSaveProject()}
@@ -72,10 +72,10 @@ export const ProjectManager = ({
               <div className="flex gap-2">
                 <Button onClick={handleSaveProject} className="flex items-center gap-2">
                   <Save className="w-4 h-4" />
-                  Сохранить
+                  Save
                 </Button>
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Отмена
+                  Cancel
                 </Button>
               </div>
             </div>
@@ -88,7 +88,7 @@ export const ProjectManager = ({
           <FolderOpen className="w-4 h-4 text-gray-500" />
           <Select value={activeProjectId || ''} onValueChange={onLoadProject}>
             <SelectTrigger className="w-64">
-              <SelectValue placeholder="Выберите расчет" />
+              <SelectValue placeholder="Select calculation" />
             </SelectTrigger>
             <SelectContent>
               {savedProjects.map((project) => (
@@ -109,7 +109,7 @@ export const ProjectManager = ({
       {savedProjects.length > 0 && (
         <Card className="w-full sm:w-auto">
           <CardContent className="p-4">
-            <h4 className="font-semibold mb-2">Сохраненные расчеты:</h4>
+            <h4 className="font-semibold mb-2">Saved Calculations:</h4>
             <div className="space-y-2 max-h-32 overflow-y-auto">
               {savedProjects.map((project) => (
                 <div key={project.id} className="flex items-center justify-between gap-2 text-sm">

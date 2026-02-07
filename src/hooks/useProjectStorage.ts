@@ -15,7 +15,7 @@ export const useProjectStorage = (initialData: ProjectData) => {
   const [savedProjects, setSavedProjects] = useState<StoredProject[]>([]);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
 
-  // Загрузка сохраненных проектов при инициализации
+  // Load saved projects on init
   useEffect(() => {
     const stored = localStorage.getItem('financial-projects');
     if (stored) {
@@ -23,28 +23,28 @@ export const useProjectStorage = (initialData: ProjectData) => {
         const projects = JSON.parse(stored);
         setSavedProjects(projects);
       } catch (error) {
-        console.error('Ошибка загрузки проектов:', error);
+        console.error('Error loading projects:', error);
       }
     }
 
-    // Загрузка текущих данных
+    // Load current data
     const currentData = localStorage.getItem('financial-current-data');
     if (currentData) {
       try {
         const data = JSON.parse(currentData);
         setCurrentProject(data);
       } catch (error) {
-        console.error('Ошибка загрузки текущих данных:', error);
+        console.error('Error loading current data:', error);
       }
     }
   }, []);
 
-  // Сохранение текущих данных при изменении
+  // Save current data on change
   useEffect(() => {
     localStorage.setItem('financial-current-data', JSON.stringify(currentProject));
   }, [currentProject]);
 
-  // Сохранение списка проектов при изменении
+  // Save project list on change
   useEffect(() => {
     localStorage.setItem('financial-projects', JSON.stringify(savedProjects));
   }, [savedProjects]);
@@ -81,7 +81,7 @@ export const useProjectStorage = (initialData: ProjectData) => {
   const updateCurrentProject = (data: ProjectData) => {
     setCurrentProject(data);
     
-    // Если есть активный проект, обновляем его
+    // If there's an active project, update it
     if (activeProjectId) {
       setSavedProjects(prev => prev.map(p => 
         p.id === activeProjectId 

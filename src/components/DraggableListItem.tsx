@@ -49,7 +49,7 @@ export const DraggableListItem = ({
             <Input
               value={name}
               onChange={(e) => onNameChange(e.target.value)}
-              placeholder="Название"
+              placeholder="Name"
               className="h-8"
             />
           </div>

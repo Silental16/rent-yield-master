@@ -39,12 +39,12 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
     <div className="space-y-8">
       <Card>
         <CardHeader>
-          <CardTitle>Временные параметры</CardTitle>
+          <CardTitle>Time Parameters</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="entryDate">Дата входа в проект</Label>
+              <Label htmlFor="entryDate">Entry Date</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -55,7 +55,7 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {entryDate ? format(entryDate, "PPP") : <span>Выберите дату</span>}
+                    {entryDate ? format(entryDate, "PPP") : <span>Select date</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -69,7 +69,7 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
               </Popover>
             </div>
             <div>
-              <Label htmlFor="constructionEndDate">Дата завершения строительства</Label>
+              <Label htmlFor="constructionEndDate">Construction End Date</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -80,7 +80,7 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {constructionEndDate ? format(constructionEndDate, "PPP") : <span>Выберите дату</span>}
+                    {constructionEndDate ? format(constructionEndDate, "PPP") : <span>Select date</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -102,12 +102,12 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Характеристики юнита</CardTitle>
+          <CardTitle>Unit Characteristics</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="area">Площадь (м2)</Label>
+              <Label htmlFor="area">Area (m²)</Label>
               <Input
                 type="number"
                 id="area"
@@ -118,7 +118,7 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="adr">Средний дневной доход (ADR, $)</Label>
+              <Label htmlFor="adr">Average Daily Rate (ADR, $)</Label>
               <Input
                 type="number"
                 id="adr"
@@ -127,7 +127,7 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
               />
             </div>
             <div>
-              <Label htmlFor="occupancy">Заполняемость (%)</Label>
+              <Label htmlFor="occupancy">Occupancy (%)</Label>
               <Input
                 type="number"
                 id="occupancy"
@@ -141,11 +141,11 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Операционные расходы</CardTitle>
+          <CardTitle>Operating Expenses</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="monthlyExpenses">Ежемесячные расходы ($)</Label>
+            <Label htmlFor="monthlyExpenses">Monthly Expenses ($)</Label>
             <div className="flex items-center space-x-2">
               <Input
                 type="number"
@@ -169,12 +169,12 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
                   })
                 }
               >
-                {data.monthlyExpenses.enabled ? 'Выключить' : 'Включить'}
+                {data.monthlyExpenses.enabled ? 'Disable' : 'Enable'}
               </Button>
             </div>
           </div>
           <div>
-            <Label htmlFor="annualRepair">Ежегодный ремонт ($)</Label>
+            <Label htmlFor="annualRepair">Annual Repair ($)</Label>
             <div className="flex items-center space-x-2">
               <Input
                 type="number"
@@ -198,12 +198,12 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
                   })
                 }
               >
-                {data.annualRepair.enabled ? 'Выключить' : 'Включить'}
+                {data.annualRepair.enabled ? 'Disable' : 'Enable'}
               </Button>
             </div>
           </div>
           <div>
-            <Label htmlFor="insurance">Страховка ($)</Label>
+            <Label htmlFor="insurance">Insurance ($)</Label>
             <div className="flex items-center space-x-2">
               <Input
                 type="number"
@@ -227,7 +227,7 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
                   })
                 }
               >
-                {data.insurance.enabled ? 'Выключить' : 'Включить'}
+                {data.insurance.enabled ? 'Disable' : 'Enable'}
               </Button>
             </div>
           </div>
@@ -236,14 +236,14 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Каналы продаж</CardTitle>
+          <CardTitle>Sales Channels</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-6">
           <div>
-            <Label>Распределение выручки между каналами</Label>
+            <Label>Revenue Distribution by Channel</Label>
             <div className="mt-4 space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Прямые бронирования</span>
+                <span className="text-sm font-medium">Direct Bookings</span>
                 <span className="text-sm font-medium">{data.directBookings}%</span>
               </div>
               <Slider
@@ -270,11 +270,11 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Параметры роста</CardTitle>
+          <CardTitle>Growth Parameters</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-6">
           <div>
-            <Label htmlFor="agr">Рост ADR (AGR, %)</Label>
+            <Label htmlFor="agr">ADR Growth (AGR, %)</Label>
             <Input
               type="number"
               id="agr"
@@ -283,7 +283,7 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
             />
           </div>
           <div>
-            <Label htmlFor="propertyGrowth">Рост стоимости объекта (%)</Label>
+            <Label htmlFor="propertyGrowth">Property Value Growth (%)</Label>
             <Input
               type="number"
               id="propertyGrowth"
@@ -296,11 +296,11 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Лизхолд</CardTitle>
+          <CardTitle>Leasehold</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-6">
           <div>
-            <Label htmlFor="leaseholdTerm">Срок лизхолда (лет)</Label>
+            <Label htmlFor="leaseholdTerm">Leasehold Term (years)</Label>
             <Input
               type="number"
               id="leaseholdTerm"
@@ -313,7 +313,7 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Этапы ценообразования</CardTitle>
+          <CardTitle>Pricing Stages</CardTitle>
         </CardHeader>
         <CardContent>
           <DragDropListEditor
@@ -331,16 +331,16 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
               }));
               onChange({ ...data, pricingStages: newStages });
             }}
-            title="Этапы ценообразования"
+            title="Pricing Stages"
             showDate={true}
-            itemNamePlaceholder="Название этапа (например: Базовая цена)"
-            addButtonText="Добавить этап"
-            percentageLabel="Цена ($)"
+            itemNamePlaceholder="Stage name (e.g. Base Price)"
+            addButtonText="Add Stage"
+            percentageLabel="Price ($)"
           />
           <div className="mt-4 p-4 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-700">
-              Первый этап должен быть "Базовая цена" с указанием начальной стоимости юнита. 
-              Последующие этапы - это повышения цены с указанием новой стоимости и даты вступления в силу.
+              The first stage should be "Base Price" with the initial unit cost.
+              Subsequent stages represent price increases with the new price and effective date.
             </p>
           </div>
         </CardContent>
@@ -348,11 +348,11 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Сценарии выхода</CardTitle>
+          <CardTitle>Exit Scenarios</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-6">
           <div>
-            <Label htmlFor="variableCosts">Переменные расходы (%)</Label>
+            <Label htmlFor="variableCosts">Variable Costs (%)</Label>
             <Input
               type="number"
               id="variableCosts"
@@ -361,7 +361,7 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
             />
           </div>
           <div>
-            <Label htmlFor="agentCommission">Комиссия агента (%)</Label>
+            <Label htmlFor="agentCommission">Agent Commission (%)</Label>
             <Input
               type="number"
               id="agentCommission"
@@ -374,11 +374,11 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Сезонность</CardTitle>
+          <CardTitle>Seasonality</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-6">
           <div>
-            <Label>Включить сезонность</Label>
+            <Label>Enable Seasonality</Label>
             <Button
               variant="outline"
               onClick={() =>
@@ -388,14 +388,14 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
                 })
               }
             >
-              {data.seasonality.enabled ? 'Выключить' : 'Включить'}
+              {data.seasonality.enabled ? 'Disable' : 'Enable'}
             </Button>
           </div>
           {data.seasonality.enabled && (
             <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
               {data.seasonality.coefficients.map((coefficient, index) => (
                 <div key={index}>
-                  <Label htmlFor={`coefficient-${index}`}>Месяц {index + 1}</Label>
+                  <Label htmlFor={`coefficient-${index}`}>Month {index + 1}</Label>
                   <Input
                     type="number"
                     id={`coefficient-${index}`}
@@ -418,11 +418,11 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Финансовые метрики</CardTitle>
+          <CardTitle>Financial Metrics</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-6">
           <div>
-            <Label>Включить NPV</Label>
+            <Label>Enable NPV</Label>
             <Button
               variant="outline"
               onClick={() =>
@@ -432,12 +432,12 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
                 })
               }
             >
-              {data.npvEnabled ? 'Выключить' : 'Включить'}
+              {data.npvEnabled ? 'Disable' : 'Enable'}
             </Button>
           </div>
           {data.npvEnabled && (
             <div>
-              <Label htmlFor="discountRate">Ставка дисконтирования (%)</Label>
+              <Label htmlFor="discountRate">Discount Rate (%)</Label>
               <Input
                 type="number"
                 id="discountRate"
@@ -447,7 +447,7 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
             </div>
           )}
           <div>
-            <Label>Включить IRR</Label>
+            <Label>Enable IRR</Label>
             <Button
               variant="outline"
               onClick={() =>
@@ -457,7 +457,7 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
                 })
               }
             >
-              {data.irrEnabled ? 'Выключить' : 'Включить'}
+              {data.irrEnabled ? 'Disable' : 'Enable'}
             </Button>
           </div>
         </CardContent>
@@ -465,7 +465,7 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Расходы из выручки</CardTitle>
+          <CardTitle>Revenue Expenses</CardTitle>
         </CardHeader>
         <CardContent>
           <DragDropListEditor
@@ -481,17 +481,17 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
               }));
               onChange({ ...data, revenueExpenses: newExpenses });
             }}
-            title="Расходы из выручки"
-            itemNamePlaceholder="Название расхода"
-            addButtonText="Добавить расход"
-            protectedItems={['Комиссия УК с выручки', 'Комиссия OTA']}
+            title="Revenue Expenses"
+            itemNamePlaceholder="Expense name"
+            addButtonText="Add Expense"
+            protectedItems={['Management Fee (Revenue)', 'OTA Commission']}
           />
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Расходы из прибыли</CardTitle>
+          <CardTitle>Profit Expenses</CardTitle>
         </CardHeader>
         <CardContent>
           <DragDropListEditor
@@ -507,9 +507,9 @@ export const ProjectForm = ({ data, onChange }: ProjectFormProps) => {
               }));
               onChange({ ...data, profitExpenses: newExpenses });
             }}
-            title="Расходы из прибыли"
-            itemNamePlaceholder="Название расхода"
-            addButtonText="Добавить расход"
+            title="Profit Expenses"
+            itemNamePlaceholder="Expense name"
+            addButtonText="Add Expense"
           />
         </CardContent>
       </Card>

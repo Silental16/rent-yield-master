@@ -6,7 +6,6 @@ export const calculatePaymentPlan = (
   entryDate: string,
   constructionEndDate: string
 ): PaymentCalculation => {
-  // Apply discount
   let discountedPrice = unitPrice;
   let discountAmount = 0;
 
@@ -27,7 +26,7 @@ export const calculatePaymentPlan = (
       schedule.push({
         date: entryDate,
         amount: discountedPrice,
-        description: 'Полная оплата',
+        description: 'Full Payment',
         type: 'down'
       });
       break;
@@ -41,15 +40,13 @@ export const calculatePaymentPlan = (
       const constructionPayment = discountedPrice * (plan.constructionPaymentPercent! / 100);
       const launchPayment = discountedPrice * (plan.launchPaymentPercent! / 100);
 
-      // Down payment
       schedule.push({
         date: entryDate,
         amount: downPayment,
-        description: 'Первоначальный взнос',
+        description: 'Down Payment',
         type: 'down'
       });
 
-      // Construction payments
       if (monthsBetween >= 1) {
         const monthlyAmount = constructionPayment / monthsBetween;
         for (let i = 1; i <= monthsBetween; i++) {
@@ -57,22 +54,20 @@ export const calculatePaymentPlan = (
           schedule.push({
             date: paymentDate.toISOString().split('T')[0],
             amount: monthlyAmount,
-            description: `Платеж ${i}`,
+            description: `Payment ${i}`,
             type: 'monthly'
           });
         }
       } else {
-        // Add construction payment to down payment if less than 1 month
         schedule[0].amount += constructionPayment;
-        schedule[0].description = 'Первоначальный взнос + платежи во время строительства';
+        schedule[0].description = 'Down Payment + Construction Payments';
       }
 
-      // Launch payment
       if (launchPayment > 0) {
         schedule.push({
           date: constructionEndDate,
           amount: launchPayment,
-          description: 'Финальный платеж при запуске',
+          description: 'Final Payment at Launch',
           type: 'launch'
         });
       }
@@ -83,28 +78,25 @@ export const calculatePaymentPlan = (
       const remainingAmount = discountedPrice - downPaymentFixed;
       const monthlyPayment = remainingAmount / plan.installmentMonths!;
 
-      // Down payment
       schedule.push({
         date: entryDate,
         amount: downPaymentFixed,
-        description: 'Первоначальный взнос',
+        description: 'Down Payment',
         type: 'down'
       });
 
-      // Monthly payments
       for (let i = 1; i <= plan.installmentMonths!; i++) {
         const paymentDate = new Date(entryDateTime.getTime() + i * 30 * 24 * 60 * 60 * 1000);
         schedule.push({
           date: paymentDate.toISOString().split('T')[0],
           amount: monthlyPayment,
-          description: `Платеж ${i} из ${plan.installmentMonths}`,
+          description: `Payment ${i} of ${plan.installmentMonths}`,
           type: 'monthly'
         });
       }
       break;
   }
 
-  // Add additional payments at launch
   if (plan.additionalPayments && plan.additionalPayments.length > 0) {
     plan.additionalPayments.forEach(additionalPayment => {
       let amount = 0;
