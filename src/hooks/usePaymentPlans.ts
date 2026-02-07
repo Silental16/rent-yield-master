@@ -4,7 +4,7 @@ import { PaymentPlan } from '@/types/paymentPlan';
 
 const createDefaultPlan = (): PaymentPlan => ({
   id: 'default',
-  name: 'Полная оплата',
+  name: 'Full Payment',
   type: 'full',
   discount: {
     type: 'percentage',

@@ -72,21 +72,21 @@ export const PaymentPlanForm = ({ isOpen, onClose, onSubmit, editingPlan }: Paym
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Название плана обязательно';
+      newErrors.name = 'Plan name is required';
     }
 
     if (formData.type === 'construction') {
       if (formData.downPaymentPercent + formData.constructionPaymentPercent > 100) {
-        newErrors.construction = 'Сумма первоначального взноса и платежей во время строительства не может превышать 100%';
+        newErrors.construction = 'Down payment and construction payments cannot exceed 100%';
       }
     }
 
     if (formData.type === 'fixed') {
       if (formData.downPaymentPercentFixed >= 100) {
-        newErrors.fixedDown = 'Первоначальный взнос должен быть меньше 100%';
+        newErrors.fixedDown = 'Down payment must be less than 100%';
       }
       if (formData.installmentMonths <= 0) {
-        newErrors.months = 'Срок рассрочки должен быть больше 0';
+        newErrors.months = 'Installment term must be greater than 0';
       }
     }
 
@@ -129,46 +129,46 @@ export const PaymentPlanForm = ({ isOpen, onClose, onSubmit, editingPlan }: Paym
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {editingPlan ? 'Редактировать план оплаты' : 'Создать план оплаты'}
+            {editingPlan ? 'Edit Payment Plan' : 'Create Payment Plan'}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="name">Название плана *</Label>
+            <Label htmlFor="name">Plan Name *</Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Введите название плана"
+              placeholder="Enter plan name"
               className={errors.name ? 'border-red-500' : ''}
             />
             {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
           </div>
 
           <div className="space-y-3">
-            <Label>Тип плана *</Label>
+            <Label>Plan Type *</Label>
             <RadioGroup
               value={formData.type}
               onValueChange={(value) => setFormData({ ...formData, type: value as any })}
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="full" id="full" />
-                <Label htmlFor="full">Полная оплата</Label>
+                <Label htmlFor="full">Full Payment</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="construction" id="construction" />
-                <Label htmlFor="construction">До конца стройки</Label>
+                <Label htmlFor="construction">Until Construction End</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="fixed" id="fixed" />
-                <Label htmlFor="fixed">Фиксированное количество месяцев</Label>
+                <Label htmlFor="fixed">Fixed Number of Months</Label>
               </div>
             </RadioGroup>
           </div>
 
           <div className="space-y-3">
-            <Label>Скидка</Label>
+            <Label>Discount</Label>
             <div className="flex gap-4 items-end">
               <div className="flex-1">
                 <Input
@@ -194,7 +194,7 @@ export const PaymentPlanForm = ({ isOpen, onClose, onSubmit, editingPlan }: Paym
             <Card>
               <CardContent className="pt-6">
                 <p className="text-sm text-gray-600">
-                  Клиент оплачивает 100% стоимости юнита в момент входа в проект с учетом указанной скидки.
+                  The client pays 100% of the unit cost at project entry with the specified discount applied.
                 </p>
               </CardContent>
             </Card>
@@ -204,7 +204,7 @@ export const PaymentPlanForm = ({ isOpen, onClose, onSubmit, editingPlan }: Paym
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="downPayment">Первоначальный взнос (%)</Label>
+                  <Label htmlFor="downPayment">Down Payment (%)</Label>
                   <Input
                     id="downPayment"
                     type="number"
@@ -215,7 +215,7 @@ export const PaymentPlanForm = ({ isOpen, onClose, onSubmit, editingPlan }: Paym
                   />
                 </div>
                 <div>
-                  <Label htmlFor="constructionPayment">Платежи во время строительства (%)</Label>
+                  <Label htmlFor="constructionPayment">Construction Payments (%)</Label>
                   <Input
                     id="constructionPayment"
                     type="number"
@@ -228,7 +228,7 @@ export const PaymentPlanForm = ({ isOpen, onClose, onSubmit, editingPlan }: Paym
               </div>
               
               <div>
-                <Label>Платеж при запуске (%)</Label>
+                <Label>Launch Payment (%)</Label>
                 <Input
                   value={launchPaymentPercent}
                   readOnly
@@ -246,7 +246,7 @@ export const PaymentPlanForm = ({ isOpen, onClose, onSubmit, editingPlan }: Paym
               <Card>
                 <CardContent className="pt-6">
                   <p className="text-sm text-gray-600">
-                    Платежи во время строительства будут распределены равномерно по месяцам. Если до запуска остается менее месяца, вся сумма спишется при входе в проект.
+                    Construction payments will be distributed evenly across months. If less than one month remains before launch, the entire amount will be charged at entry.
                   </p>
                 </CardContent>
               </Card>
@@ -257,7 +257,7 @@ export const PaymentPlanForm = ({ isOpen, onClose, onSubmit, editingPlan }: Paym
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="downPaymentFixed">Первоначальный взнос (%)</Label>
+                  <Label htmlFor="downPaymentFixed">Down Payment (%)</Label>
                   <Input
                     id="downPaymentFixed"
                     type="number"
@@ -270,7 +270,7 @@ export const PaymentPlanForm = ({ isOpen, onClose, onSubmit, editingPlan }: Paym
                   {errors.fixedDown && <p className="text-sm text-red-500">{errors.fixedDown}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="installmentMonths">Срок рассрочки (месяцев)</Label>
+                  <Label htmlFor="installmentMonths">Installment Term (months)</Label>
                   <Input
                     id="installmentMonths"
                     type="number"
@@ -285,7 +285,7 @@ export const PaymentPlanForm = ({ isOpen, onClose, onSubmit, editingPlan }: Paym
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Сумма рассрочки (%)</Label>
+                  <Label>Installment Amount (%)</Label>
                   <Input
                     value={remainingPercentFixed}
                     readOnly
@@ -293,7 +293,7 @@ export const PaymentPlanForm = ({ isOpen, onClose, onSubmit, editingPlan }: Paym
                   />
                 </div>
                 <div>
-                  <Label>Ежемесячный платеж (%)</Label>
+                  <Label>Monthly Payment (%)</Label>
                   <Input
                     value={monthlyPaymentPercent.toFixed(2)}
                     readOnly
@@ -313,10 +313,10 @@ export const PaymentPlanForm = ({ isOpen, onClose, onSubmit, editingPlan }: Paym
 
           <div className="flex gap-3 pt-4">
             <Button type="submit" className="flex-1">
-              {editingPlan ? 'Сохранить изменения' : 'Создать план'}
+              {editingPlan ? 'Save Changes' : 'Create Plan'}
             </Button>
             <Button type="button" variant="outline" onClick={onClose}>
-              Отмена
+              Cancel
             </Button>
           </div>
         </form>

@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { AdditionalPayment } from '@/types/paymentPlan';
 import { Plus, Trash2, DollarSign, Percent } from 'lucide-react';
@@ -47,14 +46,13 @@ export const AdditionalPaymentsManager = ({ payments, onChange }: AdditionalPaym
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <Plus className="w-5 h-5" />
-        <h3 className="text-lg font-semibold">Дополнительные платежи</h3>
+        <h3 className="text-lg font-semibold">Additional Payments</h3>
       </div>
       
       <p className="text-sm text-gray-600">
-        Дополнительные расходы инвестора в момент запуска проекта (сверх стоимости апартамента)
+        Additional investor expenses at project launch (on top of unit cost)
       </p>
 
-      {/* Existing payments */}
       {payments.map((payment) => (
         <Card key={payment.id} className="p-4">
           <div className="flex items-center gap-4">
@@ -62,7 +60,7 @@ export const AdditionalPaymentsManager = ({ payments, onChange }: AdditionalPaym
               <Input
                 value={payment.name}
                 onChange={(e) => updatePayment(payment.id, { name: e.target.value })}
-                placeholder="Название платежа"
+                placeholder="Payment name"
               />
             </div>
             
@@ -71,7 +69,7 @@ export const AdditionalPaymentsManager = ({ payments, onChange }: AdditionalPaym
                 type="number"
                 value={payment.value}
                 onChange={(e) => updatePayment(payment.id, { value: Number(e.target.value) })}
-                placeholder="Сумма"
+                placeholder="Amount"
                 min="0"
               />
             </div>
@@ -81,10 +79,10 @@ export const AdditionalPaymentsManager = ({ payments, onChange }: AdditionalPaym
               value={payment.type}
               onValueChange={(value) => value && updatePayment(payment.id, { type: value as any })}
             >
-              <ToggleGroupItem value="fixed" aria-label="Доллары">
+              <ToggleGroupItem value="fixed" aria-label="Dollars">
                 <DollarSign className="w-4 h-4" />
               </ToggleGroupItem>
-              <ToggleGroupItem value="percentage" aria-label="Проценты">
+              <ToggleGroupItem value="percentage" aria-label="Percentage">
                 <Percent className="w-4 h-4" />
               </ToggleGroupItem>
             </ToggleGroup>
@@ -101,14 +99,13 @@ export const AdditionalPaymentsManager = ({ payments, onChange }: AdditionalPaym
         </Card>
       ))}
 
-      {/* Add new payment */}
       <Card className="p-4 border-dashed">
         <div className="flex items-center gap-4">
           <div className="flex-1">
             <Input
               value={newPayment.name}
               onChange={(e) => setNewPayment({ ...newPayment, name: e.target.value })}
-              placeholder="Название платежа (например, Оформление документов)"
+              placeholder="Payment name (e.g. Legal Fees)"
             />
           </div>
           
@@ -117,7 +114,7 @@ export const AdditionalPaymentsManager = ({ payments, onChange }: AdditionalPaym
               type="number"
               value={newPayment.value || ''}
               onChange={(e) => setNewPayment({ ...newPayment, value: Number(e.target.value) })}
-              placeholder="Сумма"
+              placeholder="Amount"
               min="0"
             />
           </div>
@@ -127,10 +124,10 @@ export const AdditionalPaymentsManager = ({ payments, onChange }: AdditionalPaym
             value={newPayment.type}
             onValueChange={(value) => value && setNewPayment({ ...newPayment, type: value as any })}
           >
-            <ToggleGroupItem value="fixed" aria-label="Доллары">
+            <ToggleGroupItem value="fixed" aria-label="Dollars">
               <DollarSign className="w-4 h-4" />
             </ToggleGroupItem>
-            <ToggleGroupItem value="percentage" aria-label="Проценты">
+            <ToggleGroupItem value="percentage" aria-label="Percentage">
               <Percent className="w-4 h-4" />
             </ToggleGroupItem>
           </ToggleGroup>
@@ -144,10 +141,10 @@ export const AdditionalPaymentsManager = ({ payments, onChange }: AdditionalPaym
       {payments.length > 0 && (
         <div className="text-sm text-gray-600">
           <p>
-            Итого дополнительных платежей: {' '}
+            Total additional payments: {' '}
             {payments.filter(p => p.type === 'fixed').reduce((sum, p) => sum + p.value, 0).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
             {payments.filter(p => p.type === 'percentage').length > 0 && 
-              ` + ${payments.filter(p => p.type === 'percentage').reduce((sum, p) => sum + p.value, 0)}% от стоимости`
+              ` + ${payments.filter(p => p.type === 'percentage').reduce((sum, p) => sum + p.value, 0)}% of unit cost`
             }
           </p>
         </div>

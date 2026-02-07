@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,8 +29,8 @@ export const DragDropListEditor = ({
   onItemsChange,
   title,
   showDate = false,
-  itemNamePlaceholder = "Название элемента",
-  addButtonText = "Добавить элемент",
+  itemNamePlaceholder = "Item name",
+  addButtonText = "Add Item",
   protectedItems = [],
   percentageLabel = "%"
 }: DragDropListEditorProps) => {
@@ -75,7 +74,7 @@ export const DragDropListEditor = ({
   const removeItem = (id: string) => {
     const item = items.find(item => item.id === id);
     if (item && protectedItems.includes(item.name)) {
-      return; // Не удаляем защищенные элементы
+      return; // Don't remove protected items
     }
     onItemsChange(items.filter(item => item.id !== id));
   };
@@ -155,13 +154,13 @@ export const DragDropListEditor = ({
         </Droppable>
       </DragDropContext>
 
-      {/* Форма добавления нового элемента */}
+      {/* Add new item form */}
       <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-4">
         <div className="grid grid-cols-12 gap-2 items-end">
           <div className="col-span-1"></div>
           
           <div className={showDate ? "col-span-4" : "col-span-6"}>
-            <Label>Название</Label>
+            <Label>Name</Label>
             <Input
               value={newItemName}
               onChange={(e) => setNewItemName(e.target.value)}
@@ -175,13 +174,13 @@ export const DragDropListEditor = ({
               type="number"
               value={newItemPercentage}
               onChange={(e) => setNewItemPercentage(parseFloat(e.target.value))}
-              placeholder={percentageLabel === "%" ? "Процент" : "Цена"}
+              placeholder={percentageLabel === "%" ? "Percent" : "Price"}
             />
           </div>
           
           {showDate && (
             <div className="col-span-3">
-              <Label>Дата</Label>
+              <Label>Date</Label>
               <Input
                 type="date"
                 value={newItemDate}

@@ -16,7 +16,7 @@ export const PaymentPlansManager = () => {
   };
 
   const handleResetPlan = () => {
-    if (confirm('Вы уверены, что хотите сбросить план оплаты к значениям по умолчанию?')) {
+    if (confirm('Are you sure you want to reset the payment plan to default?')) {
       resetToDefault();
     }
   };
@@ -37,15 +37,15 @@ export const PaymentPlansManager = () => {
 
   const getTypeLabel = (type: string) => {
     switch (type) {
-      case 'full': return 'Полная оплата';
-      case 'construction': return 'До конца стройки';
-      case 'fixed': return 'Фиксированная рассрочка';
-      default: return 'Неизвестный тип';
+      case 'full': return 'Full Payment';
+      case 'construction': return 'Until Construction End';
+      case 'fixed': return 'Fixed Installments';
+      default: return 'Unknown Type';
     }
   };
 
   const getDiscountLabel = (plan: PaymentPlan) => {
-    if (plan.discount.value === 0) return 'Без скидки';
+    if (plan.discount.value === 0) return 'No Discount';
     return plan.discount.type === 'percentage' 
       ? `${plan.discount.value}%` 
       : `$${plan.discount.value.toLocaleString()}`;
@@ -54,11 +54,11 @@ export const PaymentPlansManager = () => {
   const getConditionsDescription = (plan: PaymentPlan) => {
     switch (plan.type) {
       case 'full':
-        return 'Единовременная оплата при входе в проект';
+        return 'One-time payment at project entry';
       case 'construction':
-        return `${plan.downPaymentPercent}% при входе, ${plan.constructionPaymentPercent}% во время стройки, ${plan.launchPaymentPercent}% при запуске`;
+        return `${plan.downPaymentPercent}% at entry, ${plan.constructionPaymentPercent}% during construction, ${plan.launchPaymentPercent}% at launch`;
       case 'fixed':
-        return `${plan.downPaymentPercentFixed}% при входе, затем ${plan.installmentMonths} месяцев рассрочки`;
+        return `${plan.downPaymentPercentFixed}% at entry, then ${plan.installmentMonths} months of installments`;
       default:
         return '';
     }
@@ -75,7 +75,7 @@ export const PaymentPlansManager = () => {
     const fixedTotal = fixedPayments.reduce((sum, p) => sum + p.value, 0);
     const percentageTotal = percentagePayments.reduce((sum, p) => sum + p.value, 0);
 
-    let description = 'Дополнительные платежи при запуске: ';
+    let description = 'Additional payments at launch: ';
     const parts = [];
     
     if (fixedTotal > 0) {
@@ -83,7 +83,7 @@ export const PaymentPlansManager = () => {
     }
     
     if (percentageTotal > 0) {
-      parts.push(`${percentageTotal}% от стоимости`);
+      parts.push(`${percentageTotal}% of unit cost`);
     }
 
     return description + parts.join(' + ');
@@ -93,16 +93,16 @@ export const PaymentPlansManager = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">План оплаты</h2>
-          <p className="text-gray-600">Настройка плана оплаты для проекта</p>
+          <h2 className="text-2xl font-bold">Payment Plan</h2>
+          <p className="text-gray-600">Configure the payment plan for the project</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={handleResetPlan} variant="outline" className="flex items-center gap-2">
-            Сбросить
+            Reset
           </Button>
           <Button onClick={handleEditPlan} className="flex items-center gap-2">
             <Edit className="w-4 h-4" />
-            Редактировать
+            Edit
           </Button>
         </div>
       </div>
@@ -121,7 +121,7 @@ export const PaymentPlansManager = () => {
                 {plan.additionalPayments && plan.additionalPayments.length > 0 && (
                   <Badge variant="outline" className="bg-blue-50">
                     <Plus className="w-3 h-3 mr-1" />
-                    {plan.additionalPayments.length} доп. платеж{plan.additionalPayments.length > 1 ? 'а' : ''}
+                    {plan.additionalPayments.length} add. payment{plan.additionalPayments.length > 1 ? 's' : ''}
                   </Badge>
                 )}
               </div>

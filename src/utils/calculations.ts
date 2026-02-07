@@ -5,21 +5,18 @@ import { calculatePaymentPlan } from './paymentCalculations';
 export class FinancialCalculations {
   constructor(private data: ProjectData, private paymentPlan?: PaymentPlan) {}
 
-  // Метод для расчета цены юнита на момент входа инвестора
   getUnitPriceAtEntry(): number {
     const entryDate = new Date(this.data.entryDate);
     const pricingStages = this.data.pricingStages;
     
-    // Сортируем этапы по дате
     const sortedStages = [...pricingStages].sort((a, b) => 
       new Date(a.date).getTime() - new Date(b.date).getTime()
     );
     
-    let currentPrice = this.data.cost; // Fallback to original cost
+    let currentPrice = this.data.cost;
     let lastStageDate = entryDate;
     let lastStagePrice = this.data.cost;
     
-    // Проверяем, есть ли этап ценообразования для даты входа
     let foundStagePrice = false;
     for (const stage of sortedStages) {
       const stageDate = new Date(stage.date);
@@ -31,17 +28,14 @@ export class FinancialCalculations {
       }
     }
     
-    // Если есть этапы и дата входа после последнего этапа, применяем рост
     if (sortedStages.length > 0 && foundStagePrice) {
       const lastStage = sortedStages[sortedStages.length - 1];
       const lastStageDateTime = new Date(lastStage.date);
       
       if (entryDate > lastStageDateTime) {
-        // Количество месяцев после последнего этапа
         const monthsAfterLastStage = (entryDate.getFullYear() - lastStageDateTime.getFullYear()) * 12 
           + (entryDate.getMonth() - lastStageDateTime.getMonth());
         
-        // Применяем экспоненциальный рост: P[n] = lastStagePrice × (1 + propertyGrowth)^(n/12)
         currentPrice = lastStage.price * Math.pow(1 + this.data.propertyGrowth / 100, monthsAfterLastStage / 12);
       }
     }
@@ -49,17 +43,14 @@ export class FinancialCalculations {
     return currentPrice;
   }
 
-  // Метод для получения данных графика роста цены юнита с учетом этапов ценообразования
   getUnitPriceGrowthData(): Array<{month: number; year: number; price: number; monthName: string}> {
     const entryDate = new Date(this.data.entryDate);
     const pricingStages = this.data.pricingStages;
     
-    // Сортируем этапы по дате
     const sortedStages = [...pricingStages].sort((a, b) => 
       new Date(a.date).getTime() - new Date(b.date).getTime()
     );
     
-    // Найти последний этап ценообразования
     let lastStagePrice = this.data.cost;
     let lastStageDate = entryDate;
     
@@ -70,7 +61,6 @@ export class FinancialCalculations {
     }
     
     const data = [];
-    const monthlyGrowthMultiplier = Math.pow(1 + this.data.propertyGrowth / 100, 1/12); // k = (1.12)^(1/12)
     
     for (let year = 0; year < 10; year++) {
       for (let month = 0; month < 12; month++) {
@@ -79,9 +69,8 @@ export class FinancialCalculations {
         currentDate.setFullYear(currentDate.getFullYear() + year);
         currentDate.setMonth(currentDate.getMonth() + month);
         
-        let price = this.data.cost; // Изначальная цена по умолчанию
+        let price = this.data.cost;
         
-        // Проверяем, есть ли этап ценообразования для этой даты
         let foundStagePrice = false;
         for (const stage of sortedStages) {
           const stageDate = new Date(stage.date);
@@ -91,13 +80,10 @@ export class FinancialCalculations {
           }
         }
         
-        // Если дата после последнего этапа ценообразования, применяем рост
         if (currentDate > lastStageDate && foundStagePrice) {
-          // Количество месяцев после последнего этапа
           const monthsAfterLastStage = (currentDate.getFullYear() - lastStageDate.getFullYear()) * 12 
             + (currentDate.getMonth() - lastStageDate.getMonth());
           
-          // Применяем экспоненциальный рост: P[n] = lastStagePrice × (1.12)^(n/12)
           price = lastStagePrice * Math.pow(1 + this.data.propertyGrowth / 100, monthsAfterLastStage / 12);
         }
         
@@ -105,7 +91,7 @@ export class FinancialCalculations {
           month: monthIndex + 1,
           year: year + 1,
           price: Math.round(price),
-          monthName: currentDate.toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' })
+          monthName: currentDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
         });
       }
     }
@@ -118,7 +104,6 @@ export class FinancialCalculations {
     const entryDate = new Date(this.data.entryDate);
     const constructionEndDate = new Date(this.data.constructionEndDate);
     
-    // Calculate initial cost based on entry date and payment plan discount
     let initialCost = this.getUnitPriceAtEntry();
     if (this.paymentPlan && this.paymentPlan.discount.value > 0) {
       if (this.paymentPlan.discount.type === 'percentage') {
@@ -143,31 +128,26 @@ export class FinancialCalculations {
         
         grossIncome = adrForYear * occupiedDays;
         
-        // Apply seasonality if enabled
         if (this.data.seasonality.enabled) {
           const avgCoefficient = this.data.seasonality.coefficients.reduce((sum, coeff) => sum + coeff, 0) / 12;
           grossIncome *= avgCoefficient;
         }
       }
       
-      // Calculate revenue breakdown by channels
       const directBookingsRevenue = grossIncome * (this.data.directBookings / 100);
       const otaBookingsRevenue = grossIncome * (this.data.otaBookings / 100);
       
-      // Calculate revenue expenses with dynamic OTA commission
       const totalRevenueExpenses = this.data.revenueExpenses.reduce((sum, expense) => {
-        if (expense.name === 'Комиссия OTA') {
-          // OTA commission applies only to OTA bookings revenue
+        if (expense.name === 'OTA Commission') {
           return sum + (otaBookingsRevenue * expense.percentage / 100);
         } else {
-          // Other expenses apply to gross income
           return sum + (grossIncome * expense.percentage / 100);
         }
       }, 0);
       
       const revenueExpensesBreakdown = this.data.revenueExpenses.map(expense => {
         let amount;
-        if (expense.name === 'Комиссия OTA') {
+        if (expense.name === 'OTA Commission') {
           amount = otaBookingsRevenue * expense.percentage / 100;
         } else {
           amount = grossIncome * expense.percentage / 100;
@@ -179,7 +159,6 @@ export class FinancialCalculations {
         };
       });
       
-      // Calculate operational expenses
       let operationalExpenses = 0;
       if (this.data.monthlyExpenses.enabled) {
         operationalExpenses += this.data.monthlyExpenses.value * 12;
@@ -191,17 +170,14 @@ export class FinancialCalculations {
         operationalExpenses += this.data.insurance.value;
       }
       
-      // Calculate operating profit
       const operatingProfit = grossIncome - totalRevenueExpenses - operationalExpenses;
       
-      // Calculate profit expenses (only if operating profit is positive)
       const profitExpenses = operatingProfit > 0 
         ? this.data.profitExpenses.reduce((sum, expense) => {
             return sum + (operatingProfit * expense.percentage / 100);
           }, 0)
         : 0;
       
-      // Calculate net profit
       const netProfit = operatingProfit - profitExpenses;
       
       results.push({
@@ -226,7 +202,6 @@ export class FinancialCalculations {
     const entryDate = new Date(this.data.entryDate);
     const constructionEndDate = new Date(this.data.constructionEndDate);
     
-    // Calculate payment plan schedule if payment plan is provided
     let paymentSchedule: Array<{date: string; amount: number}> = [];
     let initialCost = this.getUnitPriceAtEntry();
     
@@ -255,11 +230,7 @@ export class FinancialCalculations {
         
         const isConstructionComplete = currentDate >= constructionEndDate;
         
-        // Investment payment - check if there's a payment scheduled for this month
         let investorPayment = 0;
-        const currentDateStr = currentDate.toISOString().split('T')[0];
-        
-        // Find payment for current month (compare by year and month only)
         const currentYear = currentDate.getFullYear();
         const currentMonth = currentDate.getMonth();
         
@@ -269,10 +240,9 @@ export class FinancialCalculations {
         });
         
         if (monthPayment) {
-          investorPayment = -monthPayment.amount; // Negative for outgoing payment
+          investorPayment = -monthPayment.amount;
         }
         
-        // Additional payments at launch (if construction is complete this month)
         let additionalPayments = 0;
         const constructionEndYear = constructionEndDate.getFullYear();
         const constructionEndMonth = constructionEndDate.getMonth();
@@ -288,31 +258,27 @@ export class FinancialCalculations {
               return sum + payment.value;
             }
           }, 0);
-          additionalPayments = -additionalPayments; // Negative for outgoing payment
+          additionalPayments = -additionalPayments;
         }
         
-        // Rental income
         let rentalIncome = 0;
         if (isConstructionComplete) {
           const adrForYear = this.data.adr * Math.pow(1 + this.data.agr / 100, year);
-          const daysInMonth = 30; // Simplified
+          const daysInMonth = 30;
           const occupiedDays = Math.floor(daysInMonth * (this.data.occupancy / 100));
           
           rentalIncome = adrForYear * occupiedDays;
           
-          // Apply seasonality if enabled
           if (this.data.seasonality.enabled) {
             rentalIncome *= this.data.seasonality.coefficients[month] || 1;
           }
         }
         
-        // Revenue breakdown by channels
         const directBookingsRevenue = rentalIncome * (this.data.directBookings / 100);
         const otaBookingsRevenue = rentalIncome * (this.data.otaBookings / 100);
         
-        // Revenue expenses with dynamic OTA commission
         const revenueExpensesTotal = this.data.revenueExpenses.reduce((sum, expense) => {
-          if (expense.name === 'Комиссия OTA') {
+          if (expense.name === 'OTA Commission') {
             return sum + (otaBookingsRevenue * expense.percentage / 100);
           } else {
             return sum + (rentalIncome * expense.percentage / 100);
@@ -321,7 +287,7 @@ export class FinancialCalculations {
 
         const revenueExpensesBreakdown = this.data.revenueExpenses.map(expense => {
           let amount;
-          if (expense.name === 'Комиссия OTA') {
+          if (expense.name === 'OTA Commission') {
             amount = otaBookingsRevenue * expense.percentage / 100;
           } else {
             amount = rentalIncome * expense.percentage / 100;
@@ -333,14 +299,13 @@ export class FinancialCalculations {
           };
         });
         
-        // Calculate operational expenses (monthly)
         let operationalExpensesTotal = 0;
         const operationalExpensesBreakdown = [];
         
         if (this.data.monthlyExpenses.enabled) {
           operationalExpensesTotal += this.data.monthlyExpenses.value;
           operationalExpensesBreakdown.push({
-            name: 'Месячные расходы',
+            name: 'Monthly Expenses',
             amount: this.data.monthlyExpenses.value
           });
         }
@@ -348,7 +313,7 @@ export class FinancialCalculations {
         if (this.data.annualRepair.enabled && month === 0) {
           operationalExpensesTotal += this.data.annualRepair.value;
           operationalExpensesBreakdown.push({
-            name: 'Годовой ремонт',
+            name: 'Annual Repair',
             amount: this.data.annualRepair.value
           });
         }
@@ -356,15 +321,13 @@ export class FinancialCalculations {
         if (this.data.insurance.enabled && month === 0) {
           operationalExpensesTotal += this.data.insurance.value;
           operationalExpensesBreakdown.push({
-            name: 'Страховка',
+            name: 'Insurance',
             amount: this.data.insurance.value
           });
         }
         
-        // Operating profit
         const operatingProfit = rentalIncome - revenueExpensesTotal - operationalExpensesTotal;
         
-        // Profit expenses
         const profitExpensesTotal = operatingProfit > 0 
           ? this.data.profitExpenses.reduce((sum, expense) => {
               return sum + (operatingProfit * expense.percentage / 100);
@@ -376,16 +339,14 @@ export class FinancialCalculations {
           amount: operatingProfit > 0 ? operatingProfit * expense.percentage / 100 : 0
         }));
         
-        // Net profit
         const netProfit = investorPayment + additionalPayments + operatingProfit - profitExpensesTotal;
         
-        // Update cumulative cash flow
         cumulativeCashFlow += netProfit;
         
         results.push({
           month: monthIndex + 1,
           year: year + 1,
-          monthName: new Date(currentDate).toLocaleDateString('ru-RU', { month: 'short' }),
+          monthName: new Date(currentDate).toLocaleDateString('en-US', { month: 'short' }),
           investorPayment,
           rentalIncome,
           directBookingsRevenue,
@@ -407,12 +368,10 @@ export class FinancialCalculations {
   }
 
   getPropertyValueAtYear(year: number): number {
-    // Если year = 0, это означает "после строительства", используем дату завершения строительства
     if (year === 0) {
       const constructionEndDate = new Date(this.data.constructionEndDate);
       const pricingStages = this.data.pricingStages;
       
-      // Сортируем этапы по дате
       const sortedStages = [...pricingStages].sort((a, b) => 
         new Date(a.date).getTime() - new Date(b.date).getTime()
       );
@@ -420,7 +379,6 @@ export class FinancialCalculations {
       let currentPrice = this.data.cost;
       let foundStagePrice = false;
       
-      // Проверяем, есть ли этап ценообразования для даты завершения строительства
       for (const stage of sortedStages) {
         const stageDate = new Date(stage.date);
         if (constructionEndDate >= stageDate) {
@@ -429,17 +387,14 @@ export class FinancialCalculations {
         }
       }
       
-      // Если есть этапы и дата завершения строительства после последнего этапа, применяем рост
       if (sortedStages.length > 0 && foundStagePrice) {
         const lastStage = sortedStages[sortedStages.length - 1];
         const lastStageDateTime = new Date(lastStage.date);
         
         if (constructionEndDate > lastStageDateTime) {
-          // Количество месяцев после последнего этапа
           const monthsAfterLastStage = (constructionEndDate.getFullYear() - lastStageDateTime.getFullYear()) * 12 
             + (constructionEndDate.getMonth() - lastStageDateTime.getMonth());
           
-          // Применяем экспоненциальный рост
           currentPrice = lastStage.price * Math.pow(1 + this.data.propertyGrowth / 100, monthsAfterLastStage / 12);
         }
       }
@@ -447,7 +402,6 @@ export class FinancialCalculations {
       return currentPrice;
     }
     
-    // Для остальных лет считаем от даты входа в проект
     let initialCost = this.getUnitPriceAtEntry();
     if (this.paymentPlan && this.paymentPlan.discount.value > 0) {
       if (this.paymentPlan.discount.type === 'percentage') {
@@ -467,7 +421,6 @@ export class FinancialCalculations {
 
   getExitCosts(year: number): number {
     const propertyValue = this.getPropertyValueAtYear(year);
-    // Assuming 5% exit costs (broker fees, taxes, etc.)
     return propertyValue * 0.05;
   }
 
@@ -492,7 +445,6 @@ export class FinancialCalculations {
     const metrics = this.calculateKeyMetrics();
     const roi = metrics.roi10Year;
     
-    // Restore original data
     Object.assign(this.data, originalData);
     
     return roi;
@@ -521,7 +473,6 @@ export class FinancialCalculations {
     const metrics = this.calculateKeyMetrics();
     const roi = metrics.roi10Year;
     
-    // Restore original data
     Object.assign(this.data, originalData);
     
     return roi;
@@ -532,7 +483,6 @@ export class FinancialCalculations {
     const entryDate = new Date(this.data.entryDate);
     const constructionEndDate = new Date(this.data.constructionEndDate);
     
-    // Calculate initial investment based on entry date and payment plan
     let initialInvestment = this.getUnitPriceAtEntry();
     if (this.paymentPlan && this.paymentPlan.discount.value > 0) {
       if (this.paymentPlan.discount.type === 'percentage') {
@@ -542,16 +492,14 @@ export class FinancialCalculations {
       }
     }
     
-    // Calculate years from entry to construction end (investment period without income)
     const yearsFromEntryToConstEnd = Math.max(0, (constructionEndDate.getTime() - entryDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
     
     const totalNetProfit10Years = rentalIncome.reduce((sum, year) => sum + year.netProfit, 0);
     const roi10Year = (totalNetProfit10Years / initialInvestment) * 100;
     const averageAnnualReturn = roi10Year / 10;
     
-    // Calculate payback period accounting for entry date
     let cumulativeProfit = 0;
-    let paybackPeriod = yearsFromEntryToConstEnd; // Start from construction completion
+    let paybackPeriod = yearsFromEntryToConstEnd;
     
     for (const year of rentalIncome) {
       cumulativeProfit += year.netProfit;
@@ -564,33 +512,27 @@ export class FinancialCalculations {
       }
     }
     
-    // Calculate NPV accounting for investment timing
     let npv = 0;
     if (this.data.npvEnabled) {
       const discountRate = this.data.discountRate / 100;
-      npv = -initialInvestment; // Investment happens at entry date (time 0)
+      npv = -initialInvestment;
       
       for (const year of rentalIncome) {
-        // Discount from the actual time when cash flow occurs (entry date + years to construction end + rental year)
         const timeFromEntry = yearsFromEntryToConstEnd + year.year;
         npv += year.netProfit / Math.pow(1 + discountRate, timeFromEntry);
       }
       
-      // Add terminal value (property appreciation) - occurs at end of 10-year rental period
       const terminalValue = initialInvestment * Math.pow(1 + this.data.propertyGrowth / 100, 10);
       const terminalValueTime = yearsFromEntryToConstEnd + 10;
       npv += terminalValue / Math.pow(1 + discountRate, terminalValueTime);
     }
     
-    // Calculate IRR accounting for investment timing
     let irr = 0;
     if (this.data.irrEnabled) {
-      // Create cash flow array starting from entry date
       const totalYears = Math.ceil(yearsFromEntryToConstEnd + 10);
       const cashFlows = new Array(totalYears + 1).fill(0);
-      cashFlows[0] = -initialInvestment; // Investment at entry date
+      cashFlows[0] = -initialInvestment;
       
-      // Add rental income cash flows starting from construction end
       const constructionEndYearIndex = Math.ceil(yearsFromEntryToConstEnd);
       rentalIncome.forEach((year, index) => {
         const cashFlowIndex = constructionEndYearIndex + index;
@@ -599,7 +541,6 @@ export class FinancialCalculations {
         }
       });
       
-      // Add terminal value to last cash flow
       const terminalValue = initialInvestment * Math.pow(1 + this.data.propertyGrowth / 100, 10);
       const lastIndex = Math.min(constructionEndYearIndex + 9, cashFlows.length - 1);
       cashFlows[lastIndex] += terminalValue;

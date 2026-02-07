@@ -15,7 +15,7 @@ export const Dashboard = ({ data }: DashboardProps) => {
   const keyMetrics = calculations.calculateKeyMetrics();
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('ru-RU', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0,
@@ -28,29 +28,29 @@ export const Dashboard = ({ data }: DashboardProps) => {
   };
 
   const formatPaybackPeriod = (years: number) => {
-    if (years === 0) return 'Не окупается';
+    if (years === 0) return 'Does not pay back';
     
     const wholeYears = Math.floor(years);
     const remainingMonths = Math.round((years - wholeYears) * 12);
     
     if (wholeYears === 0) {
-      return `${remainingMonths} мес`;
+      return `${remainingMonths} mo`;
     } else if (remainingMonths === 0) {
-      return `${wholeYears} лет`;
+      return `${wholeYears} yr`;
     } else {
-      return `${wholeYears} лет ${remainingMonths} мес`;
+      return `${wholeYears} yr ${remainingMonths} mo`;
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* Ключевые метрики */}
+      {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 shadow-lg">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-green-600">ROI (10 лет)</p>
+                <p className="text-sm font-medium text-green-600">ROI (10 Years)</p>
                 <p className="text-3xl font-bold text-green-800">{formatPercent(keyMetrics.roi10Year)}</p>
               </div>
               <div className="text-green-600">
@@ -66,7 +66,7 @@ export const Dashboard = ({ data }: DashboardProps) => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-blue-600">Годовая доходность</p>
+                <p className="text-sm font-medium text-blue-600">Annual Return</p>
                 <p className="text-3xl font-bold text-blue-800">{formatPercent(keyMetrics.averageAnnualReturn)}</p>
               </div>
               <div className="text-blue-600">
@@ -82,7 +82,7 @@ export const Dashboard = ({ data }: DashboardProps) => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-orange-600">Срок окупаемости</p>
+                <p className="text-sm font-medium text-orange-600">Payback Period</p>
                 <p className="text-3xl font-bold text-orange-800">{formatPaybackPeriod(keyMetrics.paybackPeriod)}</p>
               </div>
               <div className="text-orange-600">
@@ -101,7 +101,7 @@ export const Dashboard = ({ data }: DashboardProps) => {
                 <div>
                   <p className="text-sm font-medium text-purple-600">NPV</p>
                   <p className="text-3xl font-bold text-purple-800">{formatCurrency(keyMetrics.npv)}</p>
-                  <p className="text-xs text-purple-500 mt-1">Ставка финансирования {formatPercent(data.discountRate)}</p>
+                  <p className="text-xs text-purple-500 mt-1">Discount Rate {formatPercent(data.discountRate)}</p>
                 </div>
                 <div className="text-purple-600">
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -132,28 +132,28 @@ export const Dashboard = ({ data }: DashboardProps) => {
         )}
       </div>
 
-      {/* Детализированная таблица доходности */}
+      {/* Detailed Profitability Table */}
       <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-xl">
         <CardHeader>
-          <CardTitle className="text-xl font-semibold">Детализированная таблица доходности</CardTitle>
+          <CardTitle className="text-xl font-semibold">Detailed Profitability Table</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr className="border-b-2 border-gray-200">
-                  <th className="text-left p-3 font-semibold bg-gray-50">Показатель</th>
+                  <th className="text-left p-3 font-semibold bg-gray-50">Metric</th>
                   {rentalIncome.map((year) => (
                     <th key={year.year} className="text-center p-3 font-semibold bg-gray-50">
-                      Год {year.year}
+                      Year {year.year}
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {/* Валовой доход */}
+                {/* Gross Income */}
                 <tr className="border-b border-gray-100">
-                  <td className="p-3 font-semibold text-blue-700 bg-blue-50">Валовой доход</td>
+                  <td className="p-3 font-semibold text-blue-700 bg-blue-50">Gross Income</td>
                   {rentalIncome.map((year) => (
                     <td key={`gross-${year.year}`} className="text-center p-3 text-blue-600">
                       {formatCurrency(year.grossIncome)}
@@ -161,9 +161,9 @@ export const Dashboard = ({ data }: DashboardProps) => {
                   ))}
                 </tr>
 
-                {/* Выручка от прямых бронирований */}
+                {/* Direct Bookings Revenue */}
                 <tr className="border-b border-gray-50">
-                  <td className="p-3 pl-8 text-sm text-gray-600">- Выручка от прямых бронирований ({data.directBookings}%)</td>
+                  <td className="p-3 pl-8 text-sm text-gray-600">- Direct Bookings ({data.directBookings}%)</td>
                   {rentalIncome.map((year) => (
                     <td key={`direct-${year.year}`} className="text-center p-3 text-xs text-green-600">
                       {formatCurrency(year.directBookingsRevenue)}
@@ -171,9 +171,9 @@ export const Dashboard = ({ data }: DashboardProps) => {
                   ))}
                 </tr>
 
-                {/* Выручка от AirBnB/Booking */}
+                {/* OTA Revenue */}
                 <tr className="border-b border-gray-50">
-                  <td className="p-3 pl-8 text-sm text-gray-600">- Выручка от AirBnB/Booking ({data.otaBookings}%)</td>
+                  <td className="p-3 pl-8 text-sm text-gray-600">- AirBnB/Booking ({data.otaBookings}%)</td>
                   {rentalIncome.map((year) => (
                     <td key={`ota-${year.year}`} className="text-center p-3 text-xs text-orange-600">
                       {formatCurrency(year.otaBookingsRevenue)}
@@ -181,9 +181,9 @@ export const Dashboard = ({ data }: DashboardProps) => {
                   ))}
                 </tr>
 
-                {/* Расходы из выручки - общая строка */}
+                {/* Revenue Expenses */}
                 <tr className="border-b border-gray-100">
-                  <td className="p-3 font-semibold text-red-700 bg-red-50">- Расходы из выручки</td>
+                  <td className="p-3 font-semibold text-red-700 bg-red-50">- Revenue Expenses</td>
                   {rentalIncome.map((year) => (
                     <td key={`rev-exp-${year.year}`} className="text-center p-3 text-red-600">
                       -{formatCurrency(year.totalRevenueExpenses)}
@@ -191,12 +191,12 @@ export const Dashboard = ({ data }: DashboardProps) => {
                   ))}
                 </tr>
 
-                {/* Детализация расходов из выручки */}
+                {/* Revenue Expenses Breakdown */}
                 {data.revenueExpenses.map((expense, expenseIndex) => (
                   <tr key={`rev-exp-detail-${expenseIndex}`} className="border-b border-gray-50">
                     <td className="p-3 pl-8 text-sm text-gray-600">
                       - {expense.name}
-                      {expense.name === 'Комиссия OTA' ? ` (${expense.percentage}% от AirBnB/Booking)` : ` (${expense.percentage}%)`}
+                      {expense.name === 'OTA Commission' ? ` (${expense.percentage}% of AirBnB/Booking)` : ` (${expense.percentage}%)`}
                     </td>
                     {rentalIncome.map((year) => {
                       const breakdown = year.revenueExpensesBreakdown?.find(b => b.name === expense.name);
@@ -210,11 +210,11 @@ export const Dashboard = ({ data }: DashboardProps) => {
                   </tr>
                 ))}
 
-                {/* Операционные расходы - общая строка */}
+                {/* Operating Expenses */}
                 {(data.monthlyExpenses.enabled || data.annualRepair.enabled || data.insurance.enabled) && (
                   <>
                     <tr className="border-b border-gray-100">
-                      <td className="p-3 font-semibold text-red-700 bg-red-50">- Операционные расходы</td>
+                      <td className="p-3 font-semibold text-red-700 bg-red-50">- Operating Expenses</td>
                       {rentalIncome.map((year) => (
                         <td key={`op-exp-${year.year}`} className="text-center p-3 text-red-600">
                           -{formatCurrency(year.operationalExpenses)}
@@ -222,10 +222,9 @@ export const Dashboard = ({ data }: DashboardProps) => {
                       ))}
                     </tr>
 
-                    {/* Детализация операционных расходов */}
                     {data.monthlyExpenses.enabled && (
                       <tr className="border-b border-gray-50">
-                        <td className="p-3 pl-8 text-sm text-gray-600">- Месячные расходы</td>
+                        <td className="p-3 pl-8 text-sm text-gray-600">- Monthly Expenses</td>
                         {rentalIncome.map((year) => (
                           <td key={`monthly-${year.year}`} className="text-center p-3 text-xs text-gray-500">
                             -{formatCurrency(data.monthlyExpenses.value * 12)}
@@ -236,7 +235,7 @@ export const Dashboard = ({ data }: DashboardProps) => {
 
                     {data.annualRepair.enabled && (
                       <tr className="border-b border-gray-50">
-                        <td className="p-3 pl-8 text-sm text-gray-600">- Годовой ремонт</td>
+                        <td className="p-3 pl-8 text-sm text-gray-600">- Annual Repair</td>
                         {rentalIncome.map((year) => (
                           <td key={`repair-${year.year}`} className="text-center p-3 text-xs text-gray-500">
                             -{formatCurrency(data.annualRepair.value)}
@@ -247,7 +246,7 @@ export const Dashboard = ({ data }: DashboardProps) => {
 
                     {data.insurance.enabled && (
                       <tr className="border-b border-gray-50">
-                        <td className="p-3 pl-8 text-sm text-gray-600">- Страховка</td>
+                        <td className="p-3 pl-8 text-sm text-gray-600">- Insurance</td>
                         {rentalIncome.map((year) => (
                           <td key={`insurance-${year.year}`} className="text-center p-3 text-xs text-gray-500">
                             -{formatCurrency(data.insurance.value)}
@@ -258,9 +257,9 @@ export const Dashboard = ({ data }: DashboardProps) => {
                   </>
                 )}
 
-                {/* Операционная прибыль */}
+                {/* Operating Profit */}
                 <tr className="border-b border-gray-100">
-                  <td className="p-3 font-semibold text-green-700 bg-green-50">Операционная прибыль</td>
+                  <td className="p-3 font-semibold text-green-700 bg-green-50">Operating Profit</td>
                   {rentalIncome.map((year) => (
                     <td key={`op-profit-${year.year}`} className={`text-center p-3 font-semibold ${year.operatingProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {formatCurrency(year.operatingProfit)}
@@ -268,9 +267,9 @@ export const Dashboard = ({ data }: DashboardProps) => {
                   ))}
                 </tr>
 
-                {/* Расходы из прибыли - общая строка */}
+                {/* Profit Expenses */}
                 <tr className="border-b border-gray-100">
-                  <td className="p-3 font-semibold text-red-700 bg-red-50">- Расходы из прибыли</td>
+                  <td className="p-3 font-semibold text-red-700 bg-red-50">- Profit Expenses</td>
                   {rentalIncome.map((year) => (
                     <td key={`profit-exp-${year.year}`} className="text-center p-3 text-red-600">
                       {year.operatingProfit > 0 ? `-${formatCurrency(year.profitExpenses)}` : formatCurrency(0)}
@@ -278,7 +277,7 @@ export const Dashboard = ({ data }: DashboardProps) => {
                   ))}
                 </tr>
 
-                {/* Детализация расходов из прибыли */}
+                {/* Profit Expenses Breakdown */}
                 {data.profitExpenses.map((expense, expenseIndex) => (
                   <tr key={`profit-exp-detail-${expenseIndex}`} className="border-b border-gray-50">
                     <td className="p-3 pl-8 text-sm text-gray-600">- {expense.name}</td>
@@ -293,9 +292,9 @@ export const Dashboard = ({ data }: DashboardProps) => {
                   </tr>
                 ))}
 
-                {/* Чистая прибыль */}
+                {/* Net Profit */}
                 <tr className="border-b-2 border-gray-200 bg-purple-50">
-                  <td className="p-3 font-bold text-purple-700">Чистая прибыль</td>
+                  <td className="p-3 font-bold text-purple-700">Net Profit</td>
                   {rentalIncome.map((year) => (
                     <td key={`net-profit-${year.year}`} className={`text-center p-3 font-bold ${year.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {formatCurrency(year.netProfit)}

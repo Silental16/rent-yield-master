@@ -11,61 +11,60 @@ import { Calculator, TrendingUp, BarChart3, PieChart, CreditCard } from 'lucide-
 import { PaymentPlansManager } from '@/components/PaymentPlansManager';
 
 export interface ProjectData {
-  // Временные параметры
+  // Time parameters
   entryDate: string;
   constructionEndDate: string;
   
-  // Характеристики юнита
+  // Unit characteristics
   area: number;
   cost: number;
   adr: number;
   occupancy: number;
   
-  // Операционные расходы
+  // Operating expenses
   monthlyExpenses: { enabled: boolean; value: number };
   annualRepair: { enabled: boolean; value: number };
   insurance: { enabled: boolean; value: number };
   
-  // Каналы продаж
+  // Sales channels
   directBookings: number;
   otaBookings: number;
   
-  // Параметры роста
+  // Growth parameters
   agr: number;
   propertyGrowth: number;
   
-  // Лизхолд
+  // Leasehold
   leaseholdTerm: number;
   
-  // Этапы ценообразования
+  // Pricing stages
   pricingStages: Array<{
     name: string;
     price: number;
     date: string;
   }>;
   
-  // Сценарии выхода
+  // Exit scenarios
   variableCosts: number;
   agentCommission: number;
   
-  // Сезонность
+  // Seasonality
   seasonality: {
     enabled: boolean;
     coefficients: number[];
   };
   
-  // Финансовые метрики
+  // Financial metrics
   npvEnabled: boolean;
   discountRate: number;
   irrEnabled: boolean;
   
-  // Расходы
+  // Expenses
   revenueExpenses: Array<{ name: string; percentage: number }>;
   profitExpenses: Array<{ name: string; percentage: number }>;
   
-  // План оплаты
+  // Payment plan
   paymentPlan: {
-
     type: 'full' | 'prelaunch' | 'monthly';
     months?: number;
     discountType: 'percentage' | 'fixed';
@@ -109,21 +108,19 @@ const Index = () => {
     discountRate: 8,
     irrEnabled: true,
     revenueExpenses: [
-      { name: 'Комиссия OTA', percentage: 12 },
-      { name: 'Комиссия УК с выручки', percentage: 8 },
-      { name: 'Расходы на содержание', percentage: 5 },
-      { name: 'Налог на аренду', percentage: 10 }
+      { name: 'OTA Commission', percentage: 12 },
+      { name: 'Management Fee (Revenue)', percentage: 8 },
+      { name: 'Maintenance Costs', percentage: 5 },
+      { name: 'Rental Tax', percentage: 10 }
     ],
     profitExpenses: [
-      { name: 'Маркетинг', percentage: 3 },
-      { name: 'Комиссия УК с прибыли', percentage: 15 },
-      { name: 'Налог на прибыль', percentage: 13 }
+      { name: 'Marketing', percentage: 3 },
+      { name: 'Management Fee (Profit)', percentage: 15 },
+      { name: 'Income Tax', percentage: 13 }
     ],
     paymentPlan: {
-
       type: 'prelaunch',
       months: 12,
-
       discountType: 'percentage',
       discountValue: 5,
       isInstallment: true,
@@ -149,10 +146,10 @@ const Index = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            Финансовые модели v2
+            Financial Models v2
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Система моделирования и анализа инвестиций в недвижимость с арендным доходом
+            Real estate investment modeling and analysis system with rental income
           </p>
         </div>
 
@@ -168,15 +165,15 @@ const Index = () => {
           <TabsList className="grid w-full grid-cols-5 bg-white/50 backdrop-blur-sm">
             <TabsTrigger value="parameters" className="flex items-center gap-2">
               <Calculator className="w-4 h-4" />
-              Параметры
+              Parameters
             </TabsTrigger>
             <TabsTrigger value="payment-plans" className="flex items-center gap-2">
               <CreditCard className="w-4 h-4" />
-              Планы оплаты
+              Payment Plans
             </TabsTrigger>
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
-              Дашборд
+              Dashboard
             </TabsTrigger>
             <TabsTrigger value="cashflow" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
@@ -184,7 +181,7 @@ const Index = () => {
             </TabsTrigger>
             <TabsTrigger value="scenarios" className="flex items-center gap-2">
               <PieChart className="w-4 h-4" />
-              Сценарии
+              Scenarios
             </TabsTrigger>
           </TabsList>
 
@@ -192,7 +189,7 @@ const Index = () => {
             <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-xl">
               <CardHeader>
                 <CardTitle className="text-2xl font-semibold text-gray-800">
-                  Параметры проекта
+                  Project Parameters
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -205,7 +202,7 @@ const Index = () => {
             <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-xl">
               <CardHeader>
                 <CardTitle className="text-2xl font-semibold text-gray-800">
-                  Управление планами оплаты
+                  Payment Plans Management
                 </CardTitle>
               </CardHeader>
               <CardContent>
